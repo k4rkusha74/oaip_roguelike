@@ -1,6 +1,3 @@
-from Weapons import Weapons
-from Character import Character, Enemy, Player
-
 class Buttons():
     def __init__(self, x_on_screem, y_on_screen):
         self.x = x_on_screem
@@ -11,3 +8,6 @@ class Buttons():
 
     def pick_up_weapon(self, weapon, character):
         weapon.pick_up(character)
+    
+    def replace_weapon(self, weapon, character):
+        weapon.replace(character)
