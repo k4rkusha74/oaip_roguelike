@@ -10,18 +10,19 @@ class Cube:
         self.start_point_x = start_point_x
         self.start_point_y = start_point_y
 
-class Hall:
-    def __init__(self, x, y, out_rooms, into_rooms, connect):
+class Door:
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.out_rooms = out_rooms
-        self.into_rooms = into_rooms
-        self.connect = connect
-
+        
 class Room(Cube):
     def __init__(self, height, width, start_point_x, start_point_y):
         super().__init__(height, width, start_point_x, start_point_y)
-        
+        self.doors = []
+    
+    def add_door(self, door):
+        self.doors.append((door))
+
     def key_func(obj):
             if isinstance(obj, Room):
                 return obj.start_point_x
@@ -116,28 +117,17 @@ def a(char, stdscr):
     except curses.error:
         pass
 
-def draw_corridor(stdscr, room1, room2, list_rooms):
-    door = False
-    #проверка на то что к комнате уже есть коридор
-    for i in range(room2.width):
-        char1 = stdscr.inch(room2.start_point_y, room2.start_point_x + i) & 0xFF
-        a(char1, stdscr)
-        char2 = stdscr.inch(room2.start_point_y + room2.height - 1, room2.start_point_x + i) & 0xFF
-        a(char2, stdscr)
-        if char1 == "-" or char2 == "-":
-            door = True
-            break
-    for i in range(room2.height):
-        char1 = stdscr.inch(room2.start_point_y + i, room2.start_point_x) & 0xFF
-        a(char1, stdscr)
-        char2 = stdscr.inch(room2.start_point_y + i, room2.start_point_x + room2.width - 1) & 0xFF
-        a(char2, stdscr)
-        if char1 == "|" or char2 == "|":
-            door = True
-            break
+def add_door_in_room(y, x, list_rooms):
+    for room in list_rooms:
+        if (x == room.start_point_x and (room.start_point_y < y < room.start_point_y + room.height) or
+        x == room.start_point_x + room.width and (room.start_point_y < y < room.start_point_y + room.height) or
+        y == room.start_point_y and (room.start_point_x < x < room.start_point_x + room.width) or
+        y == room.start_point_y + room.height and (room.start_point_x < x < room.start_point_x + room.width)):
+            door = Door(x, y)
+            room.add_door(door)
+    
 
-    if door == True:
-        return 0
+def draw_corridor(stdscr, room1, room2, list_rooms):
 
     # Центры комнат
     x1 = room1.start_point_x + room1.width // 2
@@ -160,6 +150,7 @@ def draw_corridor(stdscr, room1, room2, list_rooms):
             char = stdscr.inch(y1, x) & 0xFF
             if char == ord(ascii.unctrl("║")[0]):
                 stdscr.addch(y1, x, "|")
+                add_door_in_room(y1, x, list_rooms)
             else:
                 stdscr.addch(y1, x, curses.ACS_HLINE)
 
@@ -180,6 +171,7 @@ def draw_corridor(stdscr, room1, room2, list_rooms):
             char = stdscr.inch(y, x2) & 0xFF
             if char == ord(ascii.unctrl("═")[0]):
                 stdscr.addch(y, x2, "-")
+                add_door_in_room(y, x2, list_rooms)
             else:
                 stdscr.addch(y, x2, curses.ACS_VLINE)
         stdscr.refresh()
@@ -193,7 +185,7 @@ def main(stdscr):
     
     draw_cube(stdscr, 0, 0, max_x, max_y, 1)#рисуем окно
 
-    count_room = random.randint(4, 6)
+    count_room = random.randint(4, 5)
     for _ in range(count_room):            #рисуем комнаты
         answear = calculate_rooms(stdscr, max_y, max_x, list_rooms)
         if answear == -1:
@@ -203,7 +195,11 @@ def main(stdscr):
     list_rooms = sorted(list_rooms, key=lambda room: room.start_point_x)
 
     for i in range(len(list_rooms) - 1):
-        draw_corridor(stdscr, list_rooms[i], list_rooms[i+1], list_rooms)
+        flag = False
+        if list_rooms[i+1].doors:
+            flag = True
+        if flag == False:
+            draw_corridor(stdscr, list_rooms[i], list_rooms[i+1], list_rooms)
 
 
     
