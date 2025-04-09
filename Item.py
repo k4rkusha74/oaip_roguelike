@@ -35,10 +35,11 @@ class Weapon(Item): # оружия
     
     def equip(self, character): # экипировать / положить в руку
         if self.place != None:
-            self.place.remove(self)
+            self.place.delete(self)
             self.x = None
             self.y = None
         self.place = character.hand
+        character.hand.add(self)
     
     def unequip(self, character): # разэкипировать, положить в инвентарь
         if character.inventory.free_amount > 0:

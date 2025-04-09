@@ -16,7 +16,7 @@ class Storage():
         self.items.append(item)
             
     def delete(self, item):
-        self.remove(item)
+        self.items.remove(item)
 
     def get_items(self):
         return self.items
