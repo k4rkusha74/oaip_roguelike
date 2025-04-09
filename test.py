@@ -1,6 +1,5 @@
 from Character import Player, Enemy
-from Item import Item, Weapon # name, rarity, place, x, y, || damage, size,
-from Buttons import Buttons
+from Item import Item, Weapon # name, rarity, place, x, y, || damage, size
 from Storage import Chest
 
 main_character = Player('Player', 15, 3, 0.2, 0, 0)
