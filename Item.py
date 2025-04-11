@@ -58,13 +58,13 @@ def fist():
     return Weapon('Кулак', None, None, None, None, 2, None)
 
 class UseItem(Item): # расходники
-    def __init__(self, name, rarity, place, x, y, effect, counter):
+    def __init__(self, name, rarity, place, x, y, effect):
         super().__init__(name, rarity, place, x, y)
         self.effect = effect
-        self.counter = counter
+        self.counter = 1
 
     def pick_up(self, character): # подобрать в инвентарь
-        if self in character.inventory:
+        if self in character.inventory.get_items():
             character.inventory.self.plus_count()
         else:
             self.place = character.inventory
@@ -84,8 +84,8 @@ class UseItem(Item): # расходники
         self.pick_up(storage)
 
     # может не работать -> -> ->
-    def use(self): # использовать расходник
-        self.effect
+    def use(self, character=None): # использовать расходник
+        self.effect(character)
         self.minus_count()
 
     def plus_count(self): # добавить в стак + 1

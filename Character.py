@@ -13,14 +13,16 @@ class Character():
 
     def attack(self, target):
         damage = max(self.hand.items[0].damage, self.hand.items[1].damage)
-        if float(f'{((self.strong + damage) * (1 - target.armor)):.2f}') > target.current_health:
-            target.current_health = 0
-        else:
-            target.current_health -= float(f'{((self.strong + damage) * (1 - target.armor)):.2f}')
-            
-        if target.current_health < 0:
-            target.current_heath = 0
+        target.take_damage(damage)
     
+    def take_damage(self, damage):
+        self.current_health -= damage
+        if self.current_health <= 0:
+            self.current_health = 0
+
+        if self.current_health == 0:
+            pass
+
     def get_current_state(self):
         state = (f"Имя: {self.name}\n"
         f"Здоровье: {self.current_health}/{self.health}\n"
