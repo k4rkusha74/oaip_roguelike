@@ -1,4 +1,4 @@
-from Storage import Inventory, Arming
+from Storage import Storage, Inventory, Arming 
 
 class Character():
     def __init__(self, name, max_health, strong, armor, x, y):
@@ -8,6 +8,7 @@ class Character():
         self.armor = armor
         self.current_health = max_health
         self.hand = Arming(2, 1)
+        self.armor = Storage(3, 1)
         self.x = x
         self.y = y
 
@@ -16,7 +17,7 @@ class Character():
         target.take_damage(damage)
     
     def take_damage(self, damage):
-        self.current_health -= damage
+        self.current_health -= damage * (1 - self.get_armor())
         if self.current_health <= 0:
             self.current_health = 0
 
@@ -30,6 +31,14 @@ class Character():
         f"Атака: {self.strong}")
         return state
 
+    def get_armor(self):
+        full_block = 0
+        for arm in self.armor.get_items():
+            try:
+                full_block += arm.get_block()
+            except:
+                continue
+        return full_block
 
 class Enemy(Character):
     def __init__(self, name, max_health, strong, armor, x, y):

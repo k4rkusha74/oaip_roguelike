@@ -1,4 +1,4 @@
-from Item import Weapon, fist
+from Item import WeaponNothing, ArmorNothing
 
 class Storage():
     def __init__(self, x_amount, y_amount):
@@ -20,6 +20,9 @@ class Storage():
 
     def get_items(self):
         return self.items
+    
+    def get_free_amount(self):
+        return self.free_amount
 
 
 class Chest(Storage):
@@ -34,10 +37,24 @@ class Arming(Storage):
     def __init__(self, x_amount, y_amount):
         super().__init__(x_amount, y_amount)
         self.items = [
-            fist(),
-            fist()
+            WeaponNothing(),
+            WeaponNothing()
         ]
 
+    def delete(self, item):
+        self.items[item] = WeaponNothing()
+
+class ArmorStorage(Storage):
+    def __init__(self, x_amount, y_amount):
+        super().__init__(x_amount, y_amount)
+        self.items = [
+            ArmorNothing(),
+            ArmorNothing(),
+            ArmorNothing()
+        ]
+
+    def delete(self, item):
+        self.items[item] = ArmorNothing()
 
         
         

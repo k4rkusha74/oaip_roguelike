@@ -13,9 +13,10 @@ class Item():
         character.inventory.add(self)
 
     def put(self, storage): # переложить в хранилище
-        self.place.delete(self)
-        self.place = storage
-        storage.add(self)
+        if storage.get_free_items() > 0:
+            self.place.delete(self)
+            self.place = storage
+            storage.add(self)
 
     def drop(self, character): # выкинуть на пол
         self.place = None
@@ -33,7 +34,7 @@ class Item():
 
 class Weapon(Item): # оружия
 
-    def __init__(self, name, rarity, place, x, y, damage, size,):
+    def __init__(self, name, rarity, place, x, y, damage, size):
         super().__init__(name, rarity, place, x, y)
         self.damage = damage
         self.size = size # занимаемое количество рук (одноручное/двуручное)
@@ -47,15 +48,46 @@ class Weapon(Item): # оружия
         character.hand.add(self)
     
     def unequip(self, character): # разэкипировать, положить в инвентарь
-        if character.inventory.free_amount > 0:
-            self.place.items = [
-            fist(),
-            fist()
-        ]
-            character.inventory.add(self)
+        self.put(character.inventory)
         
-def fist():
+def WeaponNothing():
     return Weapon('Кулак', None, None, None, None, 2, None)
+
+class Armor(Item): # броня
+    def __init__(self, name, rarity, place, x, y, position, block):
+        super().__init__(name, rarity, place, x, y)
+        self.position = position
+        self.block = block
+
+    def get_block(self):
+        return self.block
+
+    def equip(self, character): # начало экипировки брони
+        match self.position:
+            case 'head':
+                self.__post_equip(character, 0)
+            case 'body':
+                self.__post_equip(character, 1)
+            case 'leg':
+                self.__post_equip(character, 2)
+            case _:
+                pass
+
+    def __post_equip(self, character, pos): # продолжение экипировки брони
+        if character.armor.items[pos] == ArmorNothing():
+            if self.place != None:
+                self.place.delete(self)
+            self.x = None
+            self.y = None
+            self.place = character.armor
+            character.armor.add(self)
+
+    def unequip(self, character):
+        self.put(character.inventory)
+
+
+def ArmorNothing():
+    return Armor('Одежда', None, None, None, None, None, 0)
 
 class UseItem(Item): # расходники
     def __init__(self, name, rarity, place, x, y, effect):
