@@ -135,8 +135,11 @@ def needs_redraw(y1, x2, list_rooms):
     return False
 
 def handle_redraw(stdscr):
-    stdscr.erase()
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Перегенирация карты...")
     stdscr.refresh()
+    curses.napms(1000)  # Пауза 1 секунда
+    curses.endwin()
     draw_game(stdscr)
 
 def draw_corridor(stdscr, room1, room2, list_rooms):
@@ -207,13 +210,7 @@ def draw_game(stdscr):
         answear = calculate_rooms(stdscr, max_y, max_x, list_rooms)
         if answear == -1:
             break
-    # room1 = Room(6, 20, 5, 5)
-    # room2 = Room(6, 20, 15, 15)
-    # room3 = Room(6, 20, 25, 12)
-    # list_rooms.append(room1)
-    # list_rooms.append(room2)
-    # draw_cube(stdscr, room1.start_point_x, room1.start_point_y, room1.start_point_x + room1.width, room1.start_point_y + room1.height, 1)
-    # draw_cube(stdscr, room2.start_point_x, room2.start_point_y, room2.start_point_x + room2.width, room2.start_point_y + room2.height, 1)
+   
     # Сортируем комнаты по X координате
     list_rooms = sorted(list_rooms, key=lambda room: room.start_point_x)
 
