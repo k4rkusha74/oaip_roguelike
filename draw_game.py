@@ -14,7 +14,17 @@ class Door:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+class Corridor:
+    def __init__(self, bend_x, bend_y):
+        self.bend_x = bend_x
+        self.bend_y = bend_y
+        self.doors = []
+
+    def add_door(self, door):
+        self.doors.append((door))
         
+
 class Room(Cube):
     def __init__(self, height, width, start_point_x, start_point_y):
         super().__init__(height, width, start_point_x, start_point_y)
@@ -32,14 +42,14 @@ class Room(Cube):
 
 def draw_cube(stdscr, start_x, start_y, end_x, end_y, index_cube):#
     
-    if index_cube == 1:# главное окно
+    if index_cube == 1:
         vertical_line = "║"
         horizontal_line = "═"
         LU_corner = "╔"
         LD_corner = "╚"
         RU_corner = "╗"
         RD_corner = "╝"
-    elif index_cube == 2:# комнаты
+    elif index_cube == 2:
         vertical_line = curses.ACS_VLINE
         horizontal_line = curses.ACS_HLINE
         LU_corner = curses.ACS_ULCORNER
@@ -72,7 +82,6 @@ def draw_cube(stdscr, start_x, start_y, end_x, end_y, index_cube):#
         except:
             continue
     
-
     
 def calculate_rooms(stdscr, max_y, max_x, list_rooms): 
     h = random.randint(int(max_y / 6), int(max_y / 4))
@@ -106,17 +115,7 @@ def calculate_rooms(stdscr, max_y, max_x, list_rooms):
     
     return -1
 
-def a(char, stdscr):
-    try:
-        # Для обычных символов
-        if isinstance(char, str):
-            stdscr.addstr(2, 2, char)
-            # Для специальных символов curses
-        elif isinstance(char, int):
-            stdscr.addch(2, 2, char)
-    except curses.error:
-        pass
-
+#добавление двери к комнате
 def add_door_in_room(y, x, list_rooms):
     for room in list_rooms:
         if (x == room.start_point_x and (room.start_point_y < y < room.start_point_y + room.height) or
@@ -125,7 +124,20 @@ def add_door_in_room(y, x, list_rooms):
         y == room.start_point_y + room.height and (room.start_point_x < x < room.start_point_x + room.width)):
             door = Door(x, y)
             room.add_door(door)
-    
+
+def needs_redraw(y1, x2, list_rooms):
+    for room in list_rooms:
+        if (((y1 == room.start_point_y or 
+            y1 == room.start_point_y + room.height) and x2 > room.start_point_x) or 
+            x2 == room.start_point_x or 
+            x2 == room.start_point_x + room.width):
+            return True
+    return False
+
+def handle_redraw(stdscr):
+    stdscr.erase()
+    stdscr.refresh()
+    draw_game(stdscr)
 
 def draw_corridor(stdscr, room1, room2, list_rooms):
 
@@ -134,6 +146,10 @@ def draw_corridor(stdscr, room1, room2, list_rooms):
     y1 = room1.start_point_y + room1.height // 2
     x2 = room2.start_point_x + room2.width // 2
     y2 = room2.start_point_y + room2.height // 2
+    
+    is_corner = needs_redraw(y1, x2, list_rooms)
+    if is_corner == True:
+        handle_redraw(stdscr)
     
     # Горизонтальная часть
     if x2 > x1:
@@ -176,7 +192,8 @@ def draw_corridor(stdscr, room1, room2, list_rooms):
                 stdscr.addch(y, x2, curses.ACS_VLINE)
         stdscr.refresh()
     
-def main(stdscr):
+def draw_game(stdscr):
+
     curses.curs_set(0)#скрываем курсор
     list_rooms = list()
     list_doors = list()
@@ -190,7 +207,13 @@ def main(stdscr):
         answear = calculate_rooms(stdscr, max_y, max_x, list_rooms)
         if answear == -1:
             break
-
+    # room1 = Room(6, 20, 5, 5)
+    # room2 = Room(6, 20, 15, 15)
+    # room3 = Room(6, 20, 25, 12)
+    # list_rooms.append(room1)
+    # list_rooms.append(room2)
+    # draw_cube(stdscr, room1.start_point_x, room1.start_point_y, room1.start_point_x + room1.width, room1.start_point_y + room1.height, 1)
+    # draw_cube(stdscr, room2.start_point_x, room2.start_point_y, room2.start_point_x + room2.width, room2.start_point_y + room2.height, 1)
     # Сортируем комнаты по X координате
     list_rooms = sorted(list_rooms, key=lambda room: room.start_point_x)
 
@@ -201,10 +224,11 @@ def main(stdscr):
         if flag == False:
             draw_corridor(stdscr, list_rooms[i], list_rooms[i+1], list_rooms)
 
-
+    if len(list_rooms) <= 2:
+        handle_redraw(stdscr)
     
     stdscr.refresh()
     stdscr.getch()
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    curses.wrapper(draw_game)
