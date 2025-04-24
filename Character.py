@@ -1,28 +1,43 @@
-from Storage import Storage, Inventory, Arming 
+from Storage import Chest, Inventory, Arming, ArmorStorage 
+from Item import *
 
 class Character():
-    def __init__(self, name, max_health, strong, armor, x, y):
-        self.name = name
-        self.health = max_health
-        self.strong = strong
-        self.armor = armor
-        self.current_health = max_health
-        self.hand = Arming(2, 1)
-        self.armor = Storage(3, 1)
-        self.x = x
+    def __init__(self, name, letter, max_health, strong, x, y):
+        self.name = name # имя
+        self.letter = letter # знак на экране 
+        self.health = max_health # макс хп
+        self.strong = strong # сила удара без оружия
+        self.armor = ArmorStorage(3, 1) # броня
+        self.current_health = max_health # текущее хп
+        self.hand = Arming(2, 1) # вооружение (оружия в руках)
+        self.x = x # х и у координаты соответственно
         self.y = y
+
+    def move(self, side):
+        match side:
+            case 'right':
+                self.x += 1
+            case 'up':
+                self.y += 1
+            case 'left':
+                self.x -= 1
+            case 'down':
+                self.y -= 1
 
     def attack(self, target):
         damage = max(self.hand.items[0].damage, self.hand.items[1].damage)
-        target.take_damage(damage)
+        target.take_damage(damage, True)
     
-    def take_damage(self, damage):
-        self.current_health -= damage * (1 - self.get_armor())
+    def take_damage(self, damage, flag=False):
+        self.current_health -= damage * (1 - (self.get_armor() if flag else 0))
         if self.current_health <= 0:
             self.current_health = 0
 
         if self.current_health == 0:
-            pass
+            self.death()
+
+    def death(self):
+        pass
 
     def get_current_state(self):
         state = (f"Имя: {self.name}\n"
@@ -41,11 +56,17 @@ class Character():
         return full_block
 
 class Enemy(Character):
-    def __init__(self, name, max_health, strong, armor, x, y):
-        super().__init__(name, max_health, strong, armor, x, y)
+    def __init__(self, name, letter, max_health, strong, x, y):
+        super().__init__(name, letter, max_health, strong, x, y)
 
+    def death(self):
+        pass
 
 class Player(Character):
-    def __init__(self, name, max_health, strong, armor, x, y):
-        super().__init__(name, max_health, strong, armor, x, y)
+    def __init__(self, name, letter, max_health, strong, x, y):
+        super().__init__(name, letter, max_health, strong, x, y)
         self.inventory = Inventory(5, 4)
+
+    def death(self):
+        pass
+    
