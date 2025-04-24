@@ -1,0 +1,40 @@
+class EnemyAnimations:
+    @staticmethod
+    def get_slime_animation():
+        return [
+            "   #####   ",
+            "  #######  ",
+            " ######### ",
+            " ######### ",
+            "  #######  ",
+            "   #####   "
+        ]
+
+    @staticmethod
+    def get_rat_animation():
+        return [
+            "   /\\_/\\   ",
+            "  ( o.o )  ",
+            "   > ^ <   ",
+            "  /     \\  "
+        ]
+
+    @staticmethod
+    def get_goblin_animation():
+        return [
+            "    /\\     ",
+            "   /  \\    ",
+            "  |    |   ",
+            "  |o  o|   ",
+            "  |  ^ |   ",
+            "  | \\_/ |  "
+        ]
+
+    @staticmethod
+    def get_enemy_art(enemy_name):
+        if "Слизень" in enemy_name:
+            return EnemyAnimations.get_slime_animation()
+        elif "Крыса" in enemy_name:
+            return EnemyAnimations.get_rat_animation()
+        else:  # Гоблин по умолчанию
+            return EnemyAnimations.get_goblin_animation()
