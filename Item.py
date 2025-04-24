@@ -61,29 +61,11 @@ class Weapon(Item): # оружия
 def WeaponNothing():
     return Weapon('Кулак', None, None, None, None, 2, None)
 
-
-# данные указывать через запятую, без ковычек
-# имя указывать только на англ. языке, если есть пробелы, заменить на _
-def CreateWeapons(): # создает все оружия из "weapon.txt" и возвращает список из всех оружий
-    with open('text.txt', 'r') as t:
-        result = []
-        preweapons = ''
-        for item in t:
-            preweapons += item
-        weapons = preweapons.split('\n')
-        for weapon in range(len(weapons)): # name, rarity, place, x, y, damage, size)
-            weap = weapons[weapon].split(', ')
-            weap[0] = weap[0].replace('_', ' ')
-            weap[1] = weap[1].replace('_', ' ')
-            result.append(Weapon(weap[0], Rarity(weap[1]), None, None, None, weap[2], weap[3]))
-        return result
-
-
 class Armor(Item): # броня
-    def __init__(self, name, rarity, place, x, y, position, block):
+    def __init__(self, name, rarity, place, x, y, block, position):
         super().__init__(name, rarity, place, x, y)
-        self.position = position
         self.block = block
+        self.position = position
 
     def get_block(self):
         return self.block
@@ -182,4 +164,34 @@ class Rarity(): #
             case 'How did you get this?':
                 return 0.00777
 
-
+# данные указывать через запятую, без ковычек
+# имя указывать только на англ. языке, если есть пробелы, заменить на _ (отнотиться и к редкости)
+def CreateWeapons(): # создает и возвращает список из оружий, указаных в "weapons.txt"
+    result = []
+    with open('weapons.txt', 'r') as text:
+        preweapons = ''
+        for item in text:
+            preweapons += item
+        weapons = preweapons.split('\n')
+        for weapon in range(len(weapons)): # name, rarity, damage, size
+            weap = weapons[weapon].split(', ')
+            weap[0] = weap[0].replace('_', ' ')
+            weap[1] = weap[1].replace('_', ' ')
+            result.append(Weapon(weap[0], Rarity(weap[1]), None, None, None, int(weap[2]), int(weap[3])))
+    
+    return result
+    
+def CreateArmors(): # создает и возвращает список из брони, указаной в "armors.txt"
+    result = []
+    with open('armors.txt', 'r') as text:
+        prearmors = ''
+        for item in text:
+            prearmors += item
+        armors = prearmors.split('\n')
+        for armor in range(len(armors)): # name, rarity, position, block
+            arm = armors[armor].split(', ')
+            arm[0] = arm[0].replace('_', ' ')
+            arm[1] = arm[1].replace('_', ' ')
+            result.append(Armor(arm[0], Rarity(arm[1], None, None, None, int(arm[2]), int(arm[3]))))
+    
+    return result
