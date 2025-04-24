@@ -1,0 +1,335 @@
+import curses
+import random
+from Character import Player, Enemy
+from Item import Weapon, Armor, UseItem, WeaponNothing, ArmorNothing
+from Storage import Inventory, Arming, ArmorStorage
+from EnemyAnimations import EnemyAnimations
+
+
+class BattleWindow:
+    def __init__(self, stdscr):
+        self.stdscr = stdscr
+        self.player = self.create_player() #делаю игрока и врага 
+        self.enemies = self.create_enemies()
+        self.current_enemy = None
+        self.in_battle = False
+        self.in_inventory = False
+        self.selected_action = 0
+        self.selected_item = 0
+        
+        # Настройка управления
+        self.key_bindings = {
+            'up': ord('w'),
+            'down': ord('s'),
+            'left': ord('a'),
+            'right': ord('d'),
+            'confirm': ord(' '),
+            'escape': 27,
+            'retreat': ord('f')
+        }
+        
+        # кидаю шмот а то брать не от куда ,списка снаряжения то нет
+        self.init_default_equipment()#тут что то сломалось разберусь чуть позже
+        self.start_battle(random.choice(self.enemies))
+    
+    def create_player(self):# инициализация гг
+        player = Player("Герой", 100, 10, 0.1, 0, 0)
+        return player
+    
+    def create_enemies(self): # опять же делаю врагов а то их не откуда брать
+        enemies = []
+        
+        # Слизень
+        slime = Enemy("Слизень", 30, 5, 0.05, 0, 0)
+        slime_weapon = Weapon("Слизь", "common", slime.hand, None, None, 3, 1)
+        slime.hand.items[0] = slime_weapon
+        enemies.append(slime)
+        
+        # Крыса
+        rat = Enemy("Крыса", 20, 8, 0.0, 0, 0)
+        rat_weapon = Weapon("Клыки", "common", rat.hand, None, None, 5, 1)
+        rat.hand.items[0] = rat_weapon
+        enemies.append(rat)
+        
+        # Гоблин
+        goblin = Enemy("Гоблин", 50, 12, 0.15, 0, 0)
+        goblin_weapon = Weapon("Кривой меч", "uncommon", goblin.hand, None, None, 8, 2)
+        goblin.hand.items[0] = goblin_weapon
+        goblin_armor = Armor("Кожаный доспех", "common", goblin.armor, None, None, "body", 0.1)
+        goblin.armor.add(goblin_armor)  
+        enemies.append(goblin)
+        
+        return enemies
+
+    def init_default_equipment(self):# опять же выдаю ему снарягу
+        # Оружие
+        sword = Weapon("Обычный меч", "uncommon", None, None, None, 20, 1)
+        axe = Weapon("Секира война", "rare", None, None, None, 25, 2)
+        self.player.hand.items[0] = sword
+        self.player.hand.items[1] = axe
+        
+        # Броня
+        helmet = Armor("Шлем рыцаря", "uncommon", None, None, None, "head", 0.13)
+        chestplate = Armor("Кольчуга", "rare", None, None, None, "body", 0.17)
+        
+        # Это украденная проверка твоих слотов (впринцепе тут процентов 80 кода из дип сика )
+        if len(self.player.armor.items) < 2:
+            self.player.armor.items = [ArmorNothing() for _ in range(3)]
+        
+        self.player.armor.items[0] = helmet
+        self.player.armor.items[1] = chestplate
+        
+        # Расходники
+        health_potion = UseItem("Зелье здоровья", "common", None, None, None, self.heal_effect) #эффектов не завезли еще(Вова завези пж)
+        mana_potion = UseItem("Зелье маны", "common", None, None, None, self.restore_mana)
+        self.player.inventory.add(health_potion)
+        self.player.inventory.add(mana_potion)
+
+    def heal_effect(self, character):#костыль под хил
+        heal_amount = 25
+        character.current_health = min(character.current_health + heal_amount, character.health)
+    
+    def restore_mana(self, character):# костыль под ману и то не осилил его хех (
+        pass
+
+    def start_battle(self, enemy):
+        self.current_enemy = enemy
+        self.in_battle = True
+        self.selected_action = 0
+
+
+    # очистка экрана и его измерение ,думаю можно сделать конкретные цифры ,но вот с боевым окном это кстати не важно в отличии от карты 
+    def draw(self): 
+        self.stdscr.clear()
+        h, w = self.stdscr.getmaxyx()
+        
+        # Рамка вокруг экрана
+        self.stdscr.border()
+        
+        if self.in_battle:# Окно врага
+            self.draw_enemy_window(h, w)
+            
+            self.stdscr.addstr(1, 2, "[F] Отступить", # Кнопка "Отступить" да ?
+                             curses.A_BOLD if self.selected_action == 4 else curses.A_NORMAL)
+            
+            # Информация о враге
+            enemy_info = f"{self.current_enemy.name} ({self.current_enemy.hand.items[0].name}): {self.current_enemy.current_health}/{self.current_enemy.health} HP"
+            self.stdscr.addstr(1, w - len(enemy_info) - 2, enemy_info, curses.A_BOLD)
+            
+            # Действия игрока
+            self.draw_player_actions(h, w)
+            
+            # Статус игрока
+            self.draw_player_status(h, w)
+        
+        elif self.in_inventory:
+            self.draw_inventory(h, w)
+        
+        self.stdscr.refresh()
+    
+    def draw_enemy_window(self, h, w):# рисует окно врага (что то сломалось )
+        win_h = h // 3
+        win_w = w // 2
+        win_y = 1
+        win_x = (w - win_w) // 2
+        
+        win = curses.newwin(win_h, win_w, win_y, win_x)
+        win.border()
+        
+        # ASCII-арт врага
+        enemy_art = self.get_enemy_art()
+        for i, line in enumerate(enemy_art):
+            if i < win_h - 2:
+                win.addstr(i + 1, (win_w - len(line)) // 2, line)
+        
+        win.refresh()
+    
+    def get_enemy_art(self):
+        name = self.current_enemy.name
+        weapon = self.current_enemy.hand.items[0].name
+        
+        #  анимация из EnemyAnimations
+        art = EnemyAnimations.get_enemy_art(name)
+        
+        #  подпись с именем и оружием
+        art.append(f"{name}")
+        art.append(f"Оружие: {weapon}")
+        
+        return art
+    
+    def draw_player_actions(self, h, w):#отрисовка действий игрока 
+        action_y = h - 6
+        action_x = 2
+        
+        # Проверка границ
+        if action_y < 0 or action_x < 0:
+            return
+            
+        # получаю информацию об оружии
+        weapon1 = self.player.hand.items[0]
+        weapon2 = self.player.hand.items[1]
+        
+        actions = [
+            f"[1] Атака: {weapon1.name} ({weapon1.damage} урона)",
+            f"[2] Атака: {weapon2.name} ({weapon2.damage} урона)",
+            "[3] Уклон (33% шанс)",
+            "[4] Расходники",
+        ]
+        
+        for i, action in enumerate(actions):
+            # Проверка, что строка помещается в окно
+            if action_y + i >= h - 1:
+                break
+            try:
+                attr = curses.A_REVERSE if i == self.selected_action else curses.A_NORMAL
+                self.stdscr.addstr(action_y + i, action_x, action, attr)
+            except curses.error:
+                pass  # Пропускаем строки которые не помещаются
+    
+    def draw_player_status(self, h, w):# рисую окно статуса игрока
+        status_y = h - 5
+        status_x = w - 30
+        
+        total_block = self.player.get_armor()
+        
+        status = [ #cам статус
+            f"Игрок: {self.player.name}",
+            f"HP: {self.player.current_health}/{self.player.health}",
+            f"Защита: {total_block*100:.0f}%",
+            f"Оружие: {self.player.hand.items[0].name}/{self.player.hand.items[1].name}"
+        ]
+        
+        for i, line in enumerate(status): #честно пока не понял что это 
+            self.stdscr.addstr(status_y + i, status_x, line)
+    
+    def draw_inventory(self, h, w):#на тестах
+        self.stdscr.addstr(2, 2, "ИНВЕНТАРЬ:", curses.A_BOLD)
+        self.stdscr.addstr(3, 2, "Используйте W/S для выбора, Enter для использования, Esc для выхода")
+        
+        items = self.player.inventory.get_items()
+        for i, item in enumerate(items):
+            attr = curses.A_REVERSE if i == self.selected_item else curses.A_NORMAL
+            counter = f" x{item.counter}" if hasattr(item, 'counter') else ""
+            self.stdscr.addstr(5 + i, 2, f"[{i+1}] {item.name}{counter}", attr)
+    
+    #тут что то сломалось и кроме отступления ничего перс пока не может(возможно ниже в функции которая от этой зависит)
+    def handle_input(self, key):
+        if self.in_inventory:
+            self.handle_inventory_input(key)
+        else:
+            self.handle_battle_input(key)
+    
+    def handle_inventory_input(self, key): # на тестах
+        items = self.player.inventory.get_items()
+        
+        if key == self.key_bindings['up'] and self.selected_item > 0:
+            self.selected_item -= 1
+        elif key == self.key_bindings['down'] and self.selected_item < len(items) - 1:
+            self.selected_item += 1
+        elif key == self.key_bindings['confirm'] and items:  # Теперь реагирует на пробел
+            self.use_item(self.selected_item)
+            self.in_inventory = False
+        elif key == self.key_bindings['escape']:
+            self.in_inventory = False
+    
+    def handle_battle_input(self, key):#ГЛАВНЫЙ ИСТОЧНИК МОИХ СТРАДАНИЙ (тут что то сломалось)
+        if key == self.key_bindings['up'] and self.selected_action > 0:
+            self.selected_action -= 1
+        elif key == self.key_bindings['down'] and self.selected_action < 3:
+            self.selected_action += 1
+        elif key == self.key_bindings['confirm']:
+            self.execute_action(self.selected_action)
+        elif key == ord('1'):
+            self.execute_action(0)
+        elif key == ord('2'):
+            self.execute_action(1)
+        elif key == ord('3'):
+            self.execute_action(2)
+        elif key == ord('4'):
+            self.execute_action(3)
+        elif key == self.key_bindings['retreat']:
+            self.retreat()
+    
+    def execute_action(self, action_index):#на тестах
+        if action_index == 0:  # Атака оружием 1
+            self.player.attack(self.current_enemy)
+            self.enemy_counter_attack()
+        elif action_index == 1:  # Атака оружием 2
+            self.player.attack(self.current_enemy)
+            self.enemy_counter_attack()
+        elif action_index == 2:  # Уклон
+            self.dodge()
+        elif action_index == 3:  # Расходники
+            if any(isinstance(item, UseItem) for item in self.player.inventory.get_items()):
+                self.in_inventory = True
+                self.selected_item = 0
+    
+    def enemy_counter_attack(self):#контратака вражины
+        if self.current_enemy.current_health > 0:
+            self.current_enemy.attack(self.player)
+            # Проверка смерти игрока
+            if self.player.current_health <= 0:
+                self.player.current_health = 0
+    
+    def dodge(self):#уклончик
+        if random.random() < 0.33:
+            pass  # Успешное уклонение
+        else:
+            self.enemy_counter_attack()
+    
+    def use_item(self, item_index):#на тестах - использования предмета из инвенторя
+        items = self.player.inventory.get_items()
+        if 0 <= item_index < len(items):
+            item = items[item_index]
+            if isinstance(item, UseItem):
+                item.use(self.player)
+                if hasattr(item, 'counter') and item.counter <= 0:
+                    self.player.inventory.remove(item)
+    
+    def retreat(self):#попытка бежать ,если не выходит тебя просто враг бьет
+        if random.random() < 0.7:
+            self.in_battle = False
+        else:
+            self.enemy_counter_attack()
+
+def execute_action(self, action_index):
+    if action_index in [0, 1]:  # Атака
+        self.player.attack(self.current_enemy)
+        if self.current_enemy.current_health <= 0:
+            self.show_result_message(f"Вы победили {self.current_enemy.name}!")
+            self.in_battle = False
+        else:
+            self.enemy_counter_attack()
+
+def main(stdscr):
+    stdscr.keypad(False)  # Отключает специальную обработку клавиш- чтобы пробел работал
+    stdscr.nodelay(True)  # Неблокирующий ввод - чтобы пробел точно работал
+
+    curses.curs_set(0)
+    stdscr.keypad(True)
+    
+    battle = BattleWindow(stdscr)
+    
+    while True:
+        battle.draw()
+        key = stdscr.getch()
+        battle.handle_input(key)
+        
+        # Проверка условий окончания боя
+        if battle.player.current_health <= 0:
+            battle.show_result_message("ВЫ ПОГИБЛИ! Игра окончена.")
+            break
+            
+        if battle.current_enemy and battle.current_enemy.current_health <= 0:
+            battle.in_battle = False
+            battle.show_result_message(f"Вы победили {battle.current_enemy.name}!")
+            break
+            
+        if not battle.in_battle and not battle.in_inventory:
+            battle.show_result_message("Бой завершен!")
+            break
+
+
+
+if __name__ == "__main__":
+    curses.wrapper(main)
