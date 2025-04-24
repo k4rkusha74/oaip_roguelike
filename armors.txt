@@ -1,0 +1,14 @@
+name, rarity, position, block
+
+Recruit's_helmet, common, head, 0.08
+Madman's_cap, common, head, 0.05
+Knight_helmet, rare, , head, 0.13
+Heroic_helmet, epic, head, 0.2
+Recruit's_breastplate, common, body, 0.13
+Madman's_robe, common, body, 0.05
+Knight's_armor, rare, body, 0.2
+Heroic_armor, legendary, body, 0.35
+Recruit's_greaves, common, leg, 0.1
+Shtany_iz_berezovoy_kory, rare, leg, 0.13
+Knight's_leggings, common, leg, 0.17
+Heroic_leggings, epic, leg, 0.2
