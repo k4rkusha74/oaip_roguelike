@@ -1,3 +1,5 @@
+from random import random
+
 class Item():
     def __init__(self, name, rarity, place, x, y):
         self.name = name # название оружия
@@ -31,6 +33,12 @@ class Item():
         self.place.add(self)
         item.place.add(item)
 
+    def get_chance(self):
+        return self.rarity.chance
+
+    def chance_spawn(self, minus_chance=0):
+        if random() * (1 - minus_chance) < self.get_chance():
+            return True 
 
 class Weapon(Item): # оружия
 
@@ -52,6 +60,24 @@ class Weapon(Item): # оружия
         
 def WeaponNothing():
     return Weapon('Кулак', None, None, None, None, 2, None)
+
+
+# данные указывать через запятую, без ковычек
+# имя указывать только на англ. языке, если есть пробелы, заменить на _
+def CreateWeapons(): # создает все оружия из "weapon.txt" и возвращает список из всех оружий
+    with open('text.txt', 'r') as t:
+        result = []
+        preweapons = ''
+        for item in t:
+            preweapons += item
+        weapons = preweapons.split('\n')
+        for weapon in range(len(weapons)): # name, rarity, place, x, y, damage, size)
+            weap = weapons[weapon].split(', ')
+            weap[0] = weap[0].replace('_', ' ')
+            weap[1] = weap[1].replace('_', ' ')
+            result.append(Weapon(weap[0], Rarity(weap[1]), None, None, None, weap[2], weap[3]))
+        return result
+
 
 class Armor(Item): # броня
     def __init__(self, name, rarity, place, x, y, position, block):
@@ -131,3 +157,29 @@ class UseItem(Item): # расходники
     def kill_item(self): # удалить item
         self.place.delete(self)
          
+
+# Редкости :
+# common - Обычная ~ 70%
+# rare - Редкая ~ 30%
+# epic - Эпическая ~ 10%
+# legendary - Легендарная ~ 5%
+# how did you get this? - Как тебе это выпало? ~0.777%
+
+class Rarity(): # 
+    def __init__(self, rarity):
+        self.rarity = rarity
+
+    def chance(self, rarity):
+        match rarity:
+            case 'Common':
+                return 0.7
+            case 'Rare':
+                return 0.3
+            case 'Epic':
+                return 0.1
+            case 'Legendary':
+                return 0.05
+            case 'How did you get this?':
+                return 0.00777
+
+
