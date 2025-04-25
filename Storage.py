@@ -24,10 +24,11 @@ class Storage():
     def get_free_amount(self):
         return self.free_amount
 
-
 class Chest(Storage):
-    def __init__(self, x_amount, y_amount):
+    def __init__(self, x_amount, y_amount, x ,y):
         super().__init__(x_amount, y_amount)
+        self.x = x
+        self.y = y
 
 class Inventory(Storage):
     def __init__(self, x_amount, y_amount):
