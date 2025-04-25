@@ -52,24 +52,16 @@ class Room(Rectangle):
             if isinstance(obj, Room):
                 return obj.start_point_x
             
-#рисуем рамку игры и камнаты
-def draw_rectangle(stdscr, start_x, start_y, end_x, end_y, index_cube):#
+#рисуем комнаты
+def draw_rectangle(stdscr, start_x, start_y, end_x, end_y):#
     
-    if index_cube == 1:
-        vertical_line = "║"
-        horizontal_line = "═"
-        LU_corner = "╔"
-        LD_corner = "╚"
-        RU_corner = "╗"
-        RD_corner = "╝"
-    elif index_cube == 2:
-        vertical_line = curses.ACS_VLINE
-        horizontal_line = curses.ACS_HLINE
-        LU_corner = curses.ACS_ULCORNER
-        LD_corner = curses.ACS_LLCORNER
-        RU_corner = curses.ACS_URCORNER
-        RD_corner = curses.ACS_LRCORNER
-
+    vertical_line = "║"
+    horizontal_line = "═"
+    LU_corner = "╔"
+    LD_corner = "╚"
+    RU_corner = "╗"
+    RD_corner = "╝"
+    
     #углы
     try:
         stdscr.addch(start_y, start_x, LU_corner)
@@ -203,10 +195,10 @@ def calculate_grid(stdscr, max_y, max_x):
     id = 1
     for i in range(2):
         if i == 1:
-            start_point_y = height_section
+            start_point_y = height_section + 1
             id = 4
         else:
-            start_point_y = 0
+            start_point_y = 1
             
         start_point_x = 0
         calculate_section(start_point_x, start_point_y, witdh_section, height_section, id)
@@ -242,7 +234,7 @@ def calculate_section_connections(list_section):
 
     return list_true_section
 
-
+#рассчет коридоров и дверей
 def calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_doors):
     list_doors.clear()
     list_corridor.clear()
@@ -311,9 +303,6 @@ def calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_
                 created_corridors.add(connection_key)
                 list_doors.extend(doors_found[:2])
             
-
-
-
 #высчитываем все объекты на карте
 def calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_doors):
 
@@ -329,19 +318,23 @@ def calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor
 #рисуем все объекты на карте
 def draw_map(stdscr, max_y, max_x, list_rooms, list_corridor):
     curses.curs_set(0)#скрываем курсор
-    #draw_rectangle(stdscr, 0, 0, max_x, max_y, 1)#рисуем окно
-
+    
     for room in list_rooms: #рисуем комнаты
-        draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height, 1)
+        draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height)
         stdscr.refresh()
     
     for corridor in list_corridor:#рисуем коридоры
         draw_corridor(stdscr, corridor)
         stdscr.refresh()
 
+    stdscr.addstr(0,0, "Здоровье:")
+    stdscr.addstr(0,15, "ещё что-то:")
+    stdscr.addstr(0,35, "События:")
+
 def main(stdscr):
     height, width = stdscr.getmaxyx()
     max_y, max_x = height - 1, width - 1 #запас
+
     list_rooms = list()
     list_corridor = list()
     list_doors = list()
