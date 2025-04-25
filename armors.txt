@@ -1,5 +1,3 @@
-name, rarity, position, block
-
 Recruit's_helmet, common, head, 0.08
 Madman's_cap, common, head, 0.05
 Knight_helmet, rare, , head, 0.13
