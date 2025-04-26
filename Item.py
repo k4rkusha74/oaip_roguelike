@@ -167,6 +167,7 @@ def GenerateItems(): # возвращает список из рандомных
     result = []
     result.append(CreateArmors())
     result.append(CreateWeapons())
+    result.append(CreateUseItem())
     return(result)
 
 # данные указывать через запятую, без ковычек
@@ -199,4 +200,19 @@ def CreateArmors(): # создает и возвращает список из �
             arm[1] = arm[1].replace('_', ' ')
             result.append(Armor(arm[0], Rarity(arm[1], None, None, None, float(arm[2]), arm[3])))
     
+    return result
+
+def CreateUseItem():
+    result = []
+    with open('armors.txt', 'r') as text:
+        preuse = ''
+        for item in text:
+            preuse += item
+        useitem = preuse.split('\n')
+        for item in range(len(useitem)): # name, rarity, effect
+            use = useitem[item].split(', ')
+            use[0] = use[0].replace('_', ' ')
+            use[1] = use[1].replace('_', ' ')
+            use[2] = eval(use[2])
+            result.append(UseItem(use[0], Rarity(use[1]), None, None, None, use[2]))
     return result
