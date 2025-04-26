@@ -138,7 +138,6 @@ class UseItem(Item): # расходники
 
     def kill_item(self): # удалить item
         self.place.delete(self)
-         
 
 # Редкости :
 # common - Обычная ~ 70%
@@ -163,6 +162,12 @@ class Rarity(): #
                 return 0.05
             case 'How did you get this?':
                 return 0.00777
+            
+def GenerateItems(): # возвращает список из рандомных предметов
+    result = []
+    result.append(CreateArmors())
+    result.append(CreateWeapons())
+    return(result)
 
 # данные указывать через запятую, без ковычек
 # имя указывать только на англ. языке, если есть пробелы, заменить на _ (отнотиться и к редкости)
@@ -188,10 +193,10 @@ def CreateArmors(): # создает и возвращает список из �
         for item in text:
             prearmors += item
         armors = prearmors.split('\n')
-        for armor in range(len(armors)): # name, rarity, position, block
+        for armor in range(len(armors)): # name, rarity, block, position
             arm = armors[armor].split(', ')
             arm[0] = arm[0].replace('_', ' ')
             arm[1] = arm[1].replace('_', ' ')
-            result.append(Armor(arm[0], Rarity(arm[1], None, None, None, int(arm[2]), int(arm[3]))))
+            result.append(Armor(arm[0], Rarity(arm[1], None, None, None, float(arm[2]), arm[3])))
     
     return result
