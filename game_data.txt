@@ -1,0 +1,57 @@
+[player]
+name = Герой
+letter = @
+health = 100
+strong = 10
+weapon = Common_sword
+armor_head = Knight_helmet
+armor_body = Knight's_armor
+armor_leg = Knight's_leggings
+potion1 = Зелье здоровья, heal, 25, 3
+potion2 = Зелье маны, mana, 20, 2
+
+[enemy_slime]
+name = Слизень
+letter = s
+health = 30
+strong = 5
+weapon = Bad_sword
+
+[enemy_rat]
+name = Крыса
+letter = r
+health = 20
+strong = 8
+weapon = Kitchen_knife
+
+[enemy_goblin]
+name = Гоблин
+letter = g
+health = 50
+strong = 12
+weapon = Common_sword
+armor_body = Recruit's_breastplate
+
+[enemy_lich]
+name = Лич
+letter = l
+health = 70
+strong = 15
+weapon = Great_sword
+armor_head = Heroic_helmet
+
+[enemy_dwarf]
+name = Гном
+letter = d
+health = 60
+strong = 18
+weapon = Warrior's_axe
+armor_body = Knight's_armor
+
+[enemy_orc]
+name = Орк
+letter = o
+health = 80
+strong = 20
+weapon = Executioner's_axe
+armor_body = Heroic_armor
