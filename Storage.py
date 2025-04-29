@@ -1,13 +1,10 @@
 from Item import WeaponNothing, ArmorNothing
 
 class Storage():
-    def __init__(self, x_amount, y_amount):
-        self.x_amount = x_amount
-        self.y_amount = y_amount
-        self.amount = self.x_amount * self.y_amount
+    def __init__(self, amount):
+        self.amount = amount
         self.items = [] * self.amount
         self.free_amount = self.amount - len(self.items)
-        
     
     def __str__(self):
         return str(self.items)
@@ -25,18 +22,18 @@ class Storage():
         return self.free_amount
 
 class Chest(Storage):
-    def __init__(self, x_amount, y_amount, x ,y):
-        super().__init__(x_amount, y_amount)
+    def __init__(self, amount, x ,y):
+        super().__init__(amount)
         self.x = x
         self.y = y
 
 class Inventory(Storage):
-    def __init__(self, x_amount, y_amount):
-        super().__init__(x_amount, y_amount)
+    def __init__(self, amount):
+        super().__init__(amount)
 
 class Arming(Storage):
-    def __init__(self, x_amount, y_amount):
-        super().__init__(x_amount, y_amount)
+    def __init__(self, amount):
+        super().__init__(amount)
         self.items = [
             WeaponNothing(),
             WeaponNothing()
@@ -46,8 +43,8 @@ class Arming(Storage):
         self.items[item] = WeaponNothing()
 
 class ArmorStorage(Storage):
-    def __init__(self, x_amount, y_amount):
-        super().__init__(x_amount, y_amount)
+    def __init__(self, amount):
+        super().__init__(amount)
         self.items = [
             ArmorNothing(),
             ArmorNothing(),
