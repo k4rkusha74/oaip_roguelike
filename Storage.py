@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 from Item import Weapon, fist
+=======
+from Item import WeaponNothing, ArmorNothing, GenerateItems
+>>>>>>> Stashed changes
 
 class Storage():
     def __init__(self, x_amount, y_amount):
@@ -25,6 +29,17 @@ class Storage():
 class Chest(Storage):
     def __init__(self, x_amount, y_amount):
         super().__init__(x_amount, y_amount)
+<<<<<<< Updated upstream
+=======
+        self.x = x
+        self.y = y
+        self.generate_and_add_items()
+
+    def generate_and_add_items(self):
+        items = GenerateItems()  # Получаем список предметов
+        for item in items:
+            self.add(item)
+>>>>>>> Stashed changes
 
 class Inventory(Storage):
     def __init__(self, x_amount, y_amount):

@@ -98,4 +98,69 @@ class UseItem(Item): # расходники
 
     def kill_item(self): # удалить item
         self.place.delete(self)
+<<<<<<< Updated upstream
          
+=======
+
+# Редкости :
+# common - Обычная ~ 70%
+# rare - Редкая ~ 30%
+# epic - Эпическая ~ 10%
+# legendary - Легендарная ~ 5%
+# how did you get this? - Как тебе это выпало? ~0.777%
+
+class Rarity(): # 
+    def __init__(self, rarity):
+        self.rarity = rarity
+
+    def chance(self, rarity):
+        match rarity:
+            case 'Common':
+                return 0.7
+            case 'Rare':
+                return 0.3
+            case 'Epic':
+                return 0.1
+            case 'Legendary':
+                return 0.05
+            case 'How did you get this?':
+                return 0.00777
+            
+def GenerateItems(): # возвращает список из рандомных предметов
+    result = []
+    result.append(CreateArmors())
+    result.append(CreateWeapons())
+    return(result)
+
+# данные указывать через запятую, без ковычек
+# имя указывать только на англ. языке, если есть пробелы, заменить на _ (отнотиться и к редкости)
+def CreateWeapons(): # создает и возвращает список из оружий, указаных в "weapons.txt"
+    result = []
+    with open('weapons.txt', 'r') as text:
+        preweapons = ''
+        for item in text:
+            preweapons += item
+        weapons = preweapons.split('\n')
+        for weapon in range(len(weapons)): # name, rarity, damage, size
+            weap = weapons[weapon].split(', ')
+            weap[0] = weap[0].replace('_', ' ')
+            weap[1] = weap[1].replace('_', ' ')
+            result.append(Weapon(weap[0], Rarity(weap[1]), None, None, None, int(weap[2]), int(weap[3])))
+    
+    return result
+    
+def CreateArmors(): # создает и возвращает список из брони, указаной в "armors.txt"
+    result = []
+    with open('armors.txt', 'r') as text:
+        prearmors = ''
+        for item in text:
+            prearmors += item
+        armors = prearmors.split('\n')
+        for armor in range(len(armors)): # name, rarity, block, position
+            arm = armors[armor].split(', ')
+            arm[0] = arm[0].replace('_', ' ')
+            arm[1] = arm[1].replace('_', ' ')
+            result.append(Armor(arm[0], Rarity(arm[1], None, None, None, arm[2], float(arm[3]))))
+    
+    return result
+>>>>>>> Stashed changes
