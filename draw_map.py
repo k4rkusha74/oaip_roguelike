@@ -1,6 +1,6 @@
 import curses
 import random
-
+import Storage
 
 class Rectangle:
     def __init__(self, height, width, start_point_x, start_point_y):
@@ -114,10 +114,16 @@ def draw_corridor(stdscr, corridor):
             stdscr.addch(y1, x2 + 1, "│")
             y1 += sign
             stdscr.refresh()
-                          
+
+def draw_chests(stdscr, list_chests):
+    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    for chest in list_chests:
+        stdscr.attron(curses.color_pair(1))
+        stdscr.addch(chest.y, chest.x, "■")
+        stdscr.attroff(curses.color_pair(1))
 
 #рассчет комнат              
-def calculate_rooms(stdscr, list_rooms, list_section, count_rooms):
+def calculate_rooms(list_rooms, list_section, count_rooms):
     rooms_to_place = random.sample(list_section, count_rooms)
    
     for section in rooms_to_place:
@@ -143,16 +149,12 @@ def calculate_rooms(stdscr, list_rooms, list_section, count_rooms):
                 if not (start_point_x - section.start_point_x < 2 or start_point_y - section.start_point_y < 2):
                     flag = True
 
-                    stdscr.addch(centre_section_y, centre_section_x, "♥")
-
         room = Room(h, w, start_point_x, start_point_y)
         section.room_in_section = True
         list_rooms.append(room)
 
     return list_rooms
   
-
-
 #добавление двери к комнате и проверка что точка на перимитре комнаты
 def point_on_perimeter(y, x, list_rooms, orientation, list_doors):
     for room in list_rooms:
@@ -177,8 +179,17 @@ def point_in_room(x, y, list_rooms):
                 flag = True
     return flag
 
+#точка в коридоре
+def point_in_corridor(x, y, list_corridor):
+    flag = False
+    for corridor in list_corridor:
+            if ((x == corridor.doors[0].x and corridor.doors[0].y <= y <= corridor.doors[1].y) or
+                (y == corridor.doors[0].y and corridor.doors[0].x <= x <= corridor.doors[1].x)):
+                flag = True
+    return flag
+
 #рассчет сетки окна
-def calculate_grid(stdscr, max_y, max_x):
+def calculate_grid( max_y, max_x):
     def calculate_section(start_point_x, start_point_y, witdh_section, height_section, id):
         for i in range(3):
             end_point_x = start_point_x + witdh_section
@@ -203,9 +214,6 @@ def calculate_grid(stdscr, max_y, max_x):
         start_point_x = 0
         calculate_section(start_point_x, start_point_y, witdh_section, height_section, id)
 
-    for point in list_section:#для отображения секций
-        stdscr.addch(point.start_point_y, point.start_point_x, "+")
-        stdscr.addch(point.end_point_y, point.end_point_x, "+")
     return list_section
 
 #рассчет соединений секций
@@ -302,21 +310,45 @@ def calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_
                 list_corridor.append(corridor)
                 created_corridors.add(connection_key)
                 list_doors.extend(doors_found[:2])
-            
-#высчитываем все объекты на карте
-def calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_doors):
 
-    list_section = calculate_grid(stdscr, max_y, max_x)
+#рассчет метсоположения сундуков
+def calculate_location_chests(list_rooms, list_chests, list_doors):
+    for room in list_rooms:
+        count_chests = random.randint(0,2)
+        
+        for i in range(count_chests):
+            flag_krinzh = False
+            while flag_krinzh != True:
+                x = random.randint(room.start_point_x + 1, room.start_point_x + room.width - 1)
+                y = random.randint(room.start_point_y + 1, room.start_point_y + room.height - 1)
+                for door in list_doors:
+                    if x + 1 == door.x or x - 1 == door.x or y + 1 == door.y or y - 1 == door.y:
+                        flag_krinzh = False
+                        break
+                    else:
+                        flag_krinzh = True
+                    
+            chest = Storage.Chest(0,x,y)
+            list_chests.append(chest)
+
+#высчитываем все объекты на карте
+def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_doors, list_chests):
+
+    list_section = calculate_grid(max_y, max_x)
 
     count_room = random.randint(4,6)
-    list_rooms = calculate_rooms(stdscr, list_rooms, list_section, count_room)
+    list_rooms = calculate_rooms(list_rooms, list_section, count_room)
 
     list_section = calculate_section_connections(list_section)
     
     calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_doors)
+
+    calculate_location_chests(list_rooms, list_chests, list_doors)
+
+    #return list_rooms, list_corridor, list_chests
     
 #рисуем все объекты на карте
-def draw_map(stdscr, max_y, max_x, list_rooms, list_corridor):
+def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests):
     curses.curs_set(0)#скрываем курсор
     
     for room in list_rooms: #рисуем комнаты
@@ -327,24 +359,52 @@ def draw_map(stdscr, max_y, max_x, list_rooms, list_corridor):
         draw_corridor(stdscr, corridor)
         stdscr.refresh()
 
+    draw_chests(stdscr,list_chests)
+    stdscr.refresh()
+
     stdscr.addstr(0,0, "Здоровье:")
     stdscr.addstr(0,15, "ещё что-то:")
     stdscr.addstr(0,35, "События:")
 
-def main(stdscr):
+#создание карты для передвижения
+def creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_chests):
+    array_for_movement = []
+    for y in range(max_y + 1):
+        row = []
+        for x in range(max_x):
+            if point_in_room(x, y, list_rooms) == True:
+                flag = False
+                for chest in list_chests:
+                    if chest.x == x and chest.y == y:
+                        row.append("2")
+                        flag = True
+                        break
+                if flag == False:       
+                    row.append("1")
+                    
+            elif point_in_corridor(x, y, list_corridor) == True:
+                row.append("1")
+            else:
+                row.append("0")
+        array_for_movement.append(row)
+    return array_for_movement
+            
+def draw_map(stdscr):
+    curses.start_color()
     height, width = stdscr.getmaxyx()
     max_y, max_x = height - 1, width - 1 #запас
 
     list_rooms = list()
     list_corridor = list()
     list_doors = list()
-    
+    list_chests = list()
 
-    calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_doors)
-    draw_map(stdscr, max_y, max_x, list_rooms, list_corridor)
+    calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_doors, list_chests)
+    draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests)
+    array_for_movement = creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_chests)
     
     stdscr.refresh()
     stdscr.getch()
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    curses.wrapper(draw_map)

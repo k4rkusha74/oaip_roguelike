@@ -1,4 +1,4 @@
-from Item import WeaponNothing, ArmorNothing
+from Item import WeaponNothing, ArmorNothing, GenerateItems
 
 class Storage():
     def __init__(self, amount):
@@ -26,6 +26,13 @@ class Chest(Storage):
         super().__init__(amount)
         self.x = x
         self.y = y
+         # При создании сундука сразу генерируем предметы и добавляем их
+        self.generate_and_add_items()
+    
+    def generate_and_add_items(self):
+        items = GenerateItems()  # Получаем список предметов
+        for item in items:
+            self.add(item)
 
 class Inventory(Storage):
     def __init__(self, amount):
