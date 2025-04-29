@@ -189,7 +189,7 @@ def point_in_corridor(x, y, list_corridor):
     return flag
 
 #рассчет сетки окна
-def calculate_grid(stdscr, max_y, max_x):
+def calculate_grid( max_y, max_x):
     def calculate_section(start_point_x, start_point_y, witdh_section, height_section, id):
         for i in range(3):
             end_point_x = start_point_x + witdh_section
@@ -214,9 +214,6 @@ def calculate_grid(stdscr, max_y, max_x):
         start_point_x = 0
         calculate_section(start_point_x, start_point_y, witdh_section, height_section, id)
 
-    for point in list_section:#для отображения секций
-        stdscr.addch(point.start_point_y, point.start_point_x, "+")
-        stdscr.addch(point.end_point_y, point.end_point_x, "+")
     return list_section
 
 #рассчет соединений секций
@@ -331,13 +328,13 @@ def calculate_location_chests(list_rooms, list_chests, list_doors):
                     else:
                         flag_krinzh = True
                     
-            chest = Storage.Chest(0,0,x,y)#переделать и добавить метод, для генерации вещей в суднук
+            chest = Storage.Chest(0,0,x,y)
             list_chests.append(chest)
 
 #высчитываем все объекты на карте
-def calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_doors, list_chests):
+def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_doors, list_chests):
 
-    list_section = calculate_grid(stdscr, max_y, max_x)
+    list_section = calculate_grid(max_y, max_x)
 
     count_room = random.randint(4,6)
     list_rooms = calculate_rooms(list_rooms, list_section, count_room)
@@ -347,6 +344,8 @@ def calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor
     calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_doors)
 
     calculate_location_chests(list_rooms, list_chests, list_doors)
+
+    return list_rooms, list_corridor, list_chests
     
 #рисуем все объекты на карте
 def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests):
