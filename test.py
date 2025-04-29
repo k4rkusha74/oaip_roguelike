@@ -1,5 +1,5 @@
 from Character import Player, Enemy
-from Item import Item, Weapon # name, rarity, place, x, y, || damage, size
+from Item import Item, Weapon, UseItem # name, rarity, place, x, y, || damage, size
 from Storage import Chest
 
 main_character = Player('Player', 15, 3, 0.2, 0, 0)
@@ -29,4 +29,18 @@ print(f'''Здоровье гоблина - {main_goblin.current_health}
 ''')
 
 for item in main_character.hand.get_items():
+    print(item.name)
+
+poison = UseItem('Яд', 'unrare', None, None, None, lambda character: character.take_damage(2))
+poison.pick_up(main_character)
+
+
+print(main_character.current_health)
+for item in main_character.inventory.get_items():
+    print(item.name)
+
+poison.use(main_character)
+
+print(main_character.current_health)
+for item in main_character.inventory.get_items():
     print(item.name)

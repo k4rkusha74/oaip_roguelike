@@ -328,7 +328,7 @@ def calculate_location_chests(list_rooms, list_chests, list_doors):
                     else:
                         flag_krinzh = True
                     
-            chest = Storage.Chest(0,0,x,y)
+            chest = Storage.Chest(0,x,y)
             list_chests.append(chest)
 
 #высчитываем все объекты на карте
@@ -345,7 +345,7 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
 
     calculate_location_chests(list_rooms, list_chests, list_doors)
 
-    return list_rooms, list_corridor, list_chests
+    #return list_rooms, list_corridor, list_chests
     
 #рисуем все объекты на карте
 def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests):
@@ -399,7 +399,7 @@ def draw_map(stdscr):
     list_doors = list()
     list_chests = list()
 
-    calculate_all_objects_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_doors, list_chests)
+    calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_doors, list_chests)
     draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests)
     array_for_movement = creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_chests)
     
