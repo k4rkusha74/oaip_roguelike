@@ -1,6 +1,6 @@
 from Storage import Chest, Inventory, Arming, ArmorStorage 
 from Item import *
-import random
+import curses
 
 class Character():
     def __init__(self, name, letter, max_health, strong, x, y):
@@ -71,15 +71,69 @@ class Player(Character):
     def death(self):
         pass
 
-class Transition:
-    def __init__(self, letter, x, y):
-        self.letter = letter
-        self.x = x
-        self.y = y
-
-def create_player(start_room):
+def create_player(start_room, player):
+    
     x_start_player = start_room.start_point_x + start_room.width // 2
     y_start_player = start_room.start_point_y + start_room.height // 2
-    player = Player("Бедолага", "•", 100, 0, x_start_player, y_start_player)
+    if player == None:
+        player = Player("Бедолага", "☻", 100, 0, x_start_player, y_start_player)
+    else:
+        player.x = x_start_player
+        player.y = y_start_player
 
-    return player  
+    return player
+
+def handle_player_movement(stdscr, player, array_for_movement, list_doors, transition, flag_on_new_level):
+
+    def was_door_or_transition(x, y, list_doors, transition):
+        for door in list_doors:
+            if door.x == x and door.y == y:
+                stdscr.addch(y,x,door.symbol)
+                return True
+        if x == transition.x and y == transition.y:
+                stdscr.addch(y,x,"=")
+                return True
+        return False
+    
+    key = stdscr.getch()
+    key = chr(key)
+    x, y = player.x, player.y
+    a = array_for_movement[y - 1][x]
+    if key == 'w' or key == 'ц':#верх
+        if array_for_movement[y - 1][x] == '1':
+            if not was_door_or_transition(x, y, list_doors, transition):
+                stdscr.addch(y,x," ")
+            stdscr.addch(y - 1,x,"☻")
+            player.y -= 1
+    elif key == 's' or key == 'ы':#вниз
+        if array_for_movement[y + 1][x] == '1':
+            if not was_door_or_transition(x, y, list_doors, transition):
+                stdscr.addch(y,x," ")
+            stdscr.addch(y + 1,x,"☻")
+            player.y += 1
+    elif key == 'd' or key == 'в':#вправо
+       if array_for_movement[y][x + 1] == '1':
+            if not was_door_or_transition(x, y, list_doors, transition):
+                stdscr.addch(y,x," ")
+            stdscr.addch(y,x + 1,"☻")
+            player.x += 1
+    elif key == 'a' or key == 'ф':#влево
+        if array_for_movement[y][x - 1] == '1':
+            if not was_door_or_transition(x, y, list_doors, transition):
+                stdscr.addch(y,x," ")
+            stdscr.addch(y,x - 1,"☻")
+            player.x -= 1
+    elif key == 'e' or key == 'у':#открыть сундук
+        #запуск окна экипировки
+        pass
+    elif key == 'f' or key == 'а':#начать бой
+        #запуск окна боя
+        pass
+    else:
+        pass
+    
+    if player.x == transition.x and player.y ==  transition.y:
+        flag_on_new_level = True
+        return player, flag_on_new_level
+
+    return player, flag_on_new_level

@@ -53,6 +53,13 @@ class Room(Rectangle):
             if isinstance(obj, Room):
                 return obj.start_point_x
 
+class View_characteristics:
+    def __init__(self, name, x, y, content):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.content = content
+
 class Transition:
     def __init__(self, symbol, x, y):
         self.symbol = "="
@@ -144,8 +151,8 @@ def draw_corridor(stdscr, corridor):
             stdscr.addch(y1, x2 - 1, "│")
             stdscr.addch(y1, x2 + 1, "│")
             y1 += sign
-            stdscr.refresh()
-
+            
+#рисуем сундуки
 def draw_chests(stdscr, list_chests):
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     for chest in list_chests:
@@ -397,9 +404,9 @@ def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, trans
 
     stdscr.addstr(transition.y, transition.x, transition.symbol)
 
-    stdscr.addstr(0,0, "Здоровье:")
-    stdscr.addstr(0,15, "ещё что-то:")
-    stdscr.addstr(0,35, "События:")
+    stdscr.addstr(0,0, "Уровень:")#7 + space + 3*ch + space
+    stdscr.addstr(0,14, "Здоровье:")# space + 8 + sapce + 3*ch + space
+    stdscr.addstr(0,29, "События:")
 
     stdscr.refresh()
 
@@ -425,7 +432,13 @@ def creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_ches
                 row.append("0")
         array_for_movement.append(row)
     return array_for_movement
-            
+
+def draw_characteristics(stdscr, curren_level, view_health, view_event):
+    stdscr.addstr(curren_level.y, curren_level.x, str(curren_level.content))
+    stdscr.addstr(view_health.y, view_health.x, str(view_health.content))
+    stdscr.addstr(view_event.y, view_event.x, str(view_event.content))
+    stdscr.refresh()
+
 def draw_map(stdscr):
     curses.start_color()
     height, width = stdscr.getmaxyx()
