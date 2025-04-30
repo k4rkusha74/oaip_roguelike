@@ -1,15 +1,3 @@
-[player]
-name = Герой
-letter = @
-health = 100
-strong = 10
-weapon = Common_sword
-armor_head = Knight_helmet
-armor_body = Knight's_armor
-armor_leg = Knight's_leggings
-potion1 = Зелье здоровья, heal, 25, 3
-potion2 = Зелье маны, mana, 20, 2
-
 [enemy_slime]
 name = Слизень
 letter = s
