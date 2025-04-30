@@ -1,5 +1,6 @@
 from Storage import Chest, Inventory, Arming, ArmorStorage 
 from Item import *
+import random
 
 class Character():
     def __init__(self, name, letter, max_health, strong, x, y):
@@ -7,9 +8,9 @@ class Character():
         self.letter = letter # знак на экране 
         self.health = max_health # макс хп
         self.strong = strong # сила удара без оружия
-        self.armor = ArmorStorage(3, 1) # броня
+        self.armor = ArmorStorage(3) # броня
         self.current_health = max_health # текущее хп
-        self.hand = Arming(2, 1) # вооружение (оружия в руках)
+        self.hand = Arming(2) # вооружение (оружия в руках)
         self.x = x # х и у координаты соответственно
         self.y = y
 
@@ -65,8 +66,20 @@ class Enemy(Character):
 class Player(Character):
     def __init__(self, name, letter, max_health, strong, x, y):
         super().__init__(name, letter, max_health, strong, x, y)
-        self.inventory = Inventory(5, 4)
+        self.inventory = Inventory(20)#########
 
     def death(self):
         pass
-    
+
+class Transition:
+    def __init__(self, letter, x, y):
+        self.letter = letter
+        self.x = x
+        self.y = y
+
+def create_player(start_room):
+    x_start_player = start_room.start_point_x + start_room.width // 2
+    y_start_player = start_room.start_point_y + start_room.height // 2
+    player = Player("Бедолага", "•", 100, 0, x_start_player, y_start_player)
+
+    return player  

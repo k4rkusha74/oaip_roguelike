@@ -27,10 +27,10 @@ class Chest(Storage):
         self.x = x
         self.y = y
          # При создании сундука сразу генерируем предметы и добавляем их
-        self.generate_and_add_items()
+        #self.generate_and_add_items()
     
     def generate_and_add_items(self):
-        items = GenerateItems()  # Получаем список предметов
+        items = GenerateItems()  
         for item in items:
             self.add(item)
 

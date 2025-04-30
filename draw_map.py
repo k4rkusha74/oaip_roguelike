@@ -41,8 +41,9 @@ class Corridor:
         self.doors.append((door))
         
 class Room(Rectangle):
-    def __init__(self, height, width, start_point_x, start_point_y):
+    def __init__(self, ID, height, width, start_point_x, start_point_y):
         super().__init__(height, width, start_point_x, start_point_y)
+        self.ID = ID
         self.doors = []
     
     def add_door(self, door):
@@ -51,7 +52,37 @@ class Room(Rectangle):
     def key_func(obj):
             if isinstance(obj, Room):
                 return obj.start_point_x
-            
+
+class Transition:
+    def __init__(self, symbol, x, y):
+        self.symbol = "="
+        self.x = x
+        self.y = y
+
+    def choice_room(self, start_room, list_rooms):
+        
+        match start_room.ID:
+            case 1:
+                filtered_list = list(filter(lambda x: x.ID != 2 and x.ID != 4 and x.ID != 1, list_rooms))
+            case 2:
+                filtered_list = list(filter(lambda x: x.ID != 1 and x.ID != 5 and x.ID != 3 and x.ID != 2, list_rooms))
+            case 3:
+                filtered_list = list(filter(lambda x: x.ID != 2 and x.ID != 6 and x.ID != 3, list_rooms))
+            case 4:
+                filtered_list = list(filter(lambda x: x.ID != 1 and x.ID != 5 and x.ID != 4, list_rooms))
+            case 5:
+                filtered_list = list(filter(lambda x: x.ID != 4 and x.ID != 2 and x.ID != 6 and x.ID != 5, list_rooms))
+            case 6:
+                filtered_list = list(filter(lambda x: x.ID != 3 and x.ID != 5 and x.ID != 6, list_rooms))
+
+        end_room = random.choice(filtered_list)
+        x_start_transition = end_room.start_point_x + end_room.width // 2
+        y_start_transition = end_room.start_point_y + end_room.height // 2
+        self.x = x_start_transition
+        self.y = y_start_transition
+
+        return self
+
 #рисуем комнаты
 def draw_rectangle(stdscr, start_x, start_y, end_x, end_y):#
     
@@ -149,7 +180,7 @@ def calculate_rooms(list_rooms, list_section, count_rooms):
                 if not (start_point_x - section.start_point_x < 2 or start_point_y - section.start_point_y < 2):
                     flag = True
 
-        room = Room(h, w, start_point_x, start_point_y)
+        room = Room( section.ID ,h, w, start_point_x, start_point_y)
         section.room_in_section = True
         list_rooms.append(room)
 
@@ -345,26 +376,32 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
 
     calculate_location_chests(list_rooms, list_chests, list_doors)
 
-    #return list_rooms, list_corridor, list_chests
+    start_room = random.choice(list_rooms)
+    transition = Transition("",0,0)
+    transition = Transition.choice_room(transition, start_room, list_rooms)
+
+    return list_rooms, list_corridor, list_chests, start_room, transition
     
 #рисуем все объекты на карте
-def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests):
+def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, transition):
+
     curses.curs_set(0)#скрываем курсор
     
     for room in list_rooms: #рисуем комнаты
         draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height)
-        stdscr.refresh()
-    
+        
     for corridor in list_corridor:#рисуем коридоры
         draw_corridor(stdscr, corridor)
-        stdscr.refresh()
-
+        
     draw_chests(stdscr,list_chests)
-    stdscr.refresh()
+
+    stdscr.addstr(transition.y, transition.x, transition.symbol)
 
     stdscr.addstr(0,0, "Здоровье:")
     stdscr.addstr(0,15, "ещё что-то:")
     stdscr.addstr(0,35, "События:")
+
+    stdscr.refresh()
 
 #создание карты для передвижения
 def creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_chests):

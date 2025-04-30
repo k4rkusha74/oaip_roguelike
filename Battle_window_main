@@ -5,7 +5,7 @@ import sys
 from Character import Player, Enemy
 from Item import Weapon, Armor, UseItem, WeaponNothing, ArmorNothing, CreateWeapons, CreateArmors
 from Storage import Inventory, Arming, ArmorStorage
-from EnemyAnimations import EnemyAnimations
+import EnemyAnimations
 
 class BattleWindow:
     def __init__(self, stdscr, player, enemies):
