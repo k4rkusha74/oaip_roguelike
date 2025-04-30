@@ -198,6 +198,6 @@ def CreateArmors(): # создает и возвращает список из �
             arm = armors[armor].split(', ')
             arm[0] = arm[0].replace('_', ' ')
             arm[1] = arm[1].replace('_', ' ')
-            result.append(Armor(arm[0], Rarity(arm[1]), None, None, None, float(arm[2]), arm[3]))
+            result.append(Armor(arm[0], Rarity(arm[1]), None, None, None, arm[2], float(arm[3])))
     
     return result
