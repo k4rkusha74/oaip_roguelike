@@ -71,19 +71,23 @@ class Player(Character):
     def death(self):
         pass
 
-def create_player(start_room, player):
+def create_player(start_room, player, flag_on_open_chest):
     
     x_start_player = start_room.start_point_x + start_room.width // 2
     y_start_player = start_room.start_point_y + start_room.height // 2
     if player == None:
         player = Player("Бедолага", "☻", 100, 0, x_start_player, y_start_player)
     else:
-        player.x = x_start_player
-        player.y = y_start_player
+        if flag_on_open_chest:
+            flag_on_open_chest = False
+            return player, flag_on_open_chest
+        else:
+            player.x = x_start_player
+            player.y = y_start_player
 
-    return player
+    return player, flag_on_open_chest
 
-def handle_player_movement(stdscr, player, array_for_movement, list_doors, transition, flag_on_new_level):
+def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, transition, flag_on_new_level, flag_on_open_chest):
 
     def was_door_or_transition(x, y, list_doors, transition):
         for door in list_doors:
@@ -98,7 +102,8 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, trans
     key = stdscr.getch()
     key = chr(key)
     x, y = player.x, player.y
-    a = array_for_movement[y - 1][x]
+    open_chest = None
+    
     if key == 'w' or key == 'ц':#верх
         if array_for_movement[y - 1][x] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
@@ -124,8 +129,13 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, trans
             stdscr.addch(y,x - 1,"☻")
             player.x -= 1
     elif key == 'e' or key == 'у':#открыть сундук
-        #запуск окна экипировки
-        pass
+        if (array_for_movement[y - 1][x] == '2' or array_for_movement[y + 1][x] == '2' or array_for_movement[y][x + 1] == '2' or array_for_movement[y][x - 1] == '2'):
+            flag_on_open_chest = True
+            for chest in list_chests:
+                if (((x+1 == chest.x or x-1 == chest.x) and y == chest.y) or ((y+1 == chest.y or y-1==chest.y) and x == chest.x)):
+                    open_chest = chest
+                    break
+
     elif key == 'f' or key == 'а':#начать бой
         #запуск окна боя
         pass
@@ -134,6 +144,6 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, trans
     
     if player.x == transition.x and player.y ==  transition.y:
         flag_on_new_level = True
-        return player, flag_on_new_level
+        return player, open_chest, flag_on_new_level, flag_on_open_chest
 
-    return player, flag_on_new_level
+    return player, open_chest, flag_on_new_level, flag_on_open_chest
