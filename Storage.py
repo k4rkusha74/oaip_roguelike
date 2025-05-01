@@ -1,4 +1,5 @@
 from Item import WeaponNothing, ArmorNothing, GenerateItems
+import draw_map
 
 class Storage():
     def __init__(self, amount):
@@ -61,7 +62,23 @@ class ArmorStorage(Storage):
     def delete(self, item):
         self.items[item] = ArmorNothing()
 
-        
+def open_storges(stdscr, list_section, open_chest):      
+        stdscr.clear()
+        start_section = list(filter(lambda x: x.ID == 1, list_section))
+        end_section = list(filter(lambda x: x.ID == 6, list_section))
+        start_x = start_section[0].start_point_x
+        start_y = start_section[0].start_point_y
+        end_x = end_section[0].end_point_x
+        end_y = end_section[0].end_point_y
+
+        draw_map.draw_rectangle(stdscr, start_x, start_y, end_x, end_y)
+
+        key = stdscr.getch()
+        key = chr(key)
+
+        if key == 'ч' or key == 'x':
+            stdscr.clear()
+            return 0
         
 
 

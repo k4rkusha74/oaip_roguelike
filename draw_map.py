@@ -124,6 +124,7 @@ def draw_rectangle(stdscr, start_x, start_y, end_x, end_y):#
             stdscr.addch(start_y + y, end_x, vertical_line)
         except:
             continue
+    stdscr.refresh()
 
 #рисуем коридоры и двери
 def draw_corridor(stdscr, corridor):
@@ -377,9 +378,9 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
     count_room = random.randint(4,6)
     list_rooms = calculate_rooms(list_rooms, list_section, count_room)
 
-    list_section = calculate_section_connections(list_section)
+    list_true_section = calculate_section_connections(list_section)
     
-    calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_doors)
+    calculate_corridors_and_doors(list_true_section, list_rooms, list_corridor, list_doors)
 
     calculate_location_chests(list_rooms, list_chests, list_doors)
 
@@ -387,7 +388,7 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
     transition = Transition("",0,0)
     transition = Transition.choice_room(transition, start_room, list_rooms)
 
-    return list_rooms, list_corridor, list_chests, start_room, transition
+    return list_rooms, list_corridor, list_chests, list_section, start_room, transition
     
 #рисуем все объекты на карте
 def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, transition):
@@ -403,10 +404,6 @@ def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, trans
     draw_chests(stdscr,list_chests)
 
     stdscr.addstr(transition.y, transition.x, transition.symbol)
-
-    stdscr.addstr(0,0, "Уровень:")#7 + space + 3*ch + space
-    stdscr.addstr(0,14, "Здоровье:")# space + 8 + sapce + 3*ch + space
-    stdscr.addstr(0,29, "События:")
 
     stdscr.refresh()
 
@@ -434,6 +431,11 @@ def creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_ches
     return array_for_movement
 
 def draw_characteristics(stdscr, curren_level, view_health, view_event):
+    stdscr.move(0, 0)# Перемещаем курсор в начало строки
+    stdscr.clrtoeol() 
+    stdscr.addstr(0,0, "Уровень:")
+    stdscr.addstr(0,14, "Здоровье:")
+    stdscr.addstr(0,29, "События:")
     stdscr.addstr(curren_level.y, curren_level.x, str(curren_level.content))
     stdscr.addstr(view_health.y, view_health.x, str(view_health.content))
     stdscr.addstr(view_event.y, view_event.x, str(view_event.content))
