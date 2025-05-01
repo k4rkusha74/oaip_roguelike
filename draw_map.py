@@ -155,11 +155,9 @@ def draw_corridor(stdscr, corridor):
             
 #рисуем сундуки
 def draw_chests(stdscr, list_chests):
-    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     for chest in list_chests:
-        stdscr.attron(curses.color_pair(1))
-        stdscr.addch(chest.y, chest.x, "■")
-        stdscr.attroff(curses.color_pair(1))
+        stdscr.addch(chest.y, chest.x, "■", curses.color_pair(3) | curses.A_BOLD)
+        
 
 #рассчет комнат              
 def calculate_rooms(list_rooms, list_section, count_rooms):
@@ -228,7 +226,7 @@ def point_in_corridor(x, y, list_corridor):
     return flag
 
 #рассчет сетки окна
-def calculate_grid( max_y, max_x):
+def calculate_grid(max_y, max_x):
     def calculate_section(start_point_x, start_point_y, witdh_section, height_section, id):
         for i in range(3):
             end_point_x = start_point_x + witdh_section
@@ -245,10 +243,10 @@ def calculate_grid( max_y, max_x):
     id = 1
     for i in range(2):
         if i == 1:
-            start_point_y = height_section + 1
+            start_point_y = height_section
             id = 4
         else:
-            start_point_y = 1
+            start_point_y = 0
             
         start_point_x = 0
         calculate_section(start_point_x, start_point_y, witdh_section, height_section, id)
@@ -403,7 +401,7 @@ def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, trans
         
     draw_chests(stdscr,list_chests)
 
-    stdscr.addstr(transition.y, transition.x, transition.symbol)
+    stdscr.addstr(transition.y, transition.x, transition.symbol, curses.color_pair(4))
 
     stdscr.refresh()
 
@@ -436,8 +434,15 @@ def draw_characteristics(stdscr, curren_level, view_health, view_event):
     stdscr.addstr(0,0, "Уровень:")
     stdscr.addstr(0,14, "Здоровье:")
     stdscr.addstr(0,29, "События:")
+
+    if view_health.content > 70:
+        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(2))
+    elif view_health.content > 30:
+        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(3))
+    else:
+        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(1))
+
     stdscr.addstr(curren_level.y, curren_level.x, str(curren_level.content))
-    stdscr.addstr(view_health.y, view_health.x, str(view_health.content))
     stdscr.addstr(view_event.y, view_event.x, str(view_event.content))
     stdscr.refresh()
 

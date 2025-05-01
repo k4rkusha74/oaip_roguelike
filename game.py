@@ -3,12 +3,20 @@ import curses
 import Character
 import Storage
 
-def main(stdscr):
+def init_colors():
     curses.start_color()
+    # Основные цвета (текст, фон)
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)      # Красный - враги
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)    # Зеленый - игрок
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Желтый - сундуки
+    curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)     # Синий - переходы
+
+
+def main(stdscr):
+    init_colors()
     height, width = stdscr.getmaxyx()
     max_y, max_x = height - 1, width - 1 #запас
     curren_level = draw_map.View_characteristics("curren_level", 9, 0, 1)
-    
     view_health = draw_map.View_characteristics("view_health", 24, 0, 100)
     view_event = draw_map.View_characteristics("view_event", 38, 0, " ")
     player = None
@@ -30,7 +38,7 @@ def main(stdscr):
         
         #добавляем персонажа по соответствующим координатам
         player, flag_on_open_chest = Character.create_player(start_room, player, flag_on_open_chest)
-        stdscr.addch(player.y, player.x, player.letter)
+        stdscr.addch(player.y, player.x, player.letter, curses.color_pair(2) | curses.A_BOLD)
         
         #вывод характеристик
         draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)

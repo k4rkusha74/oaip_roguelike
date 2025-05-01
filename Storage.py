@@ -73,12 +73,14 @@ def open_storges(stdscr, list_section, open_chest):
 
         draw_map.draw_rectangle(stdscr, start_x, start_y, end_x, end_y)
 
-        key = stdscr.getch()
-        key = chr(key)
+        while True:
+            key = stdscr.getch()
+            key = chr(key)
 
-        if key == 'ч' or key == 'x':
-            stdscr.clear()
-            return 0
+            if key == 'ч' or key == 'x':
+                stdscr.clear()
+                return 0
+        
         
 
 
