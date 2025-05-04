@@ -10,6 +10,7 @@ def init_colors():
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)    # Зеленый - игрок
     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Желтый - сундуки
     curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)     # Синий - переходы
+    curses.init_pair(8, 8, curses.COLOR_BLACK)                    # Серый (память)
 
 
 def main(stdscr):
@@ -28,14 +29,15 @@ def main(stdscr):
     
     while True:
         
-        if LIST_ROOMS == list():
-        #расчет и отрисовка карты
-            LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, LIST_SECTION, start_room, transition = draw_map.calculate_all_objects_in_map(max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_DOORS, LIST_CHESTS)
-        draw_map.draw_all_object_in_map(stdscr, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, transition)
 
-        #создание массива для передвижения по статическим объектам
-        ARRAY_FOR_MOVEMENT = draw_map.creating_map_for_movement(max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS)
-        
+        if LIST_ROOMS == list():
+            
+            #расчет карты
+            LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, LIST_SECTION, start_room, transition = draw_map.calculate_all_objects_in_map(max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_DOORS, LIST_CHESTS)
+
+            #создание массива для передвижения по статическим объектам
+            ARRAY_FOR_MOVEMENT = draw_map.creating_map_for_movement(max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS)
+
         #добавляем персонажа по соответствующим координатам
         player, flag_on_open_chest = Character.create_player(start_room, player, flag_on_open_chest)
         stdscr.addch(player.y, player.x, player.letter, curses.color_pair(2) | curses.A_BOLD)
@@ -44,6 +46,7 @@ def main(stdscr):
         draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)
 
         while True:
+
             flag_on_new_level = False
             
             #обработка передвижения врага
@@ -52,6 +55,9 @@ def main(stdscr):
             #обработка передвижения игрока
             player, open_chest, flag_on_new_level, flag_on_open_chest = Character.handle_player_movement(stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, transition, flag_on_new_level, flag_on_open_chest)
             
+            #отображаем карту с соответствующей видимостью
+            draw_map.draw_all_object_in_map(stdscr, max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, transition, player)
+
             if flag_on_new_level == True:
                 view_event.content = "Хотите перейти на следующий уровень? да-Y"
                 draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)
