@@ -21,6 +21,7 @@ def main(stdscr):
     view_health = draw_map.View_characteristics("view_health", 24, 0, 100)
     view_event = draw_map.View_characteristics("view_event", 38, 0, " ")
     player = None
+    visible = None
     flag_on_open_chest = False
     LIST_ROOMS = list() 
     LIST_CORRIDORS = list()
@@ -29,7 +30,6 @@ def main(stdscr):
     
     while True:
         
-
         if LIST_ROOMS == list():
             
             #расчет карты
@@ -40,7 +40,6 @@ def main(stdscr):
 
         #добавляем персонажа по соответствующим координатам
         player, flag_on_open_chest = Character.create_player(start_room, player, flag_on_open_chest)
-        stdscr.addch(player.y, player.x, player.letter, curses.color_pair(2) | curses.A_BOLD)
         
         #вывод характеристик
         draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)
@@ -48,15 +47,16 @@ def main(stdscr):
         while True:
 
             flag_on_new_level = False
-            
+            #получаем доступные для видимости элементы карты
+            visible = draw_map.get_view_symbol(player.x, player.y, 4, max_x, max_y, visible)
+             #отображаем карту с соответствующей видимостью
+            draw_map.draw_all_object_in_map(stdscr, max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, transition, player, visible)
+
             #обработка передвижения врага
             #move_enemies(enemies, player, game_map)
 
             #обработка передвижения игрока
             player, open_chest, flag_on_new_level, flag_on_open_chest = Character.handle_player_movement(stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, transition, flag_on_new_level, flag_on_open_chest)
-            
-            #отображаем карту с соответствующей видимостью
-            draw_map.draw_all_object_in_map(stdscr, max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, transition, player)
 
             if flag_on_new_level == True:
                 view_event.content = "Хотите перейти на следующий уровень? да-Y"
@@ -71,6 +71,7 @@ def main(stdscr):
                     LIST_CORRIDORS = list()
                     LIST_DOORS = list()
                     LIST_CHESTS = list()
+                    visible = None
                     view_event.content = " "
                     break
                 else:

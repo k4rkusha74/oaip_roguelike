@@ -91,7 +91,7 @@ class Transition:
         return self
 
 #рисуем комнаты
-def draw_rectangle(stdscr, start_x, start_y, end_x, end_y, visible):#
+def draw_rectangle(stdscr, start_x, start_y, end_x, end_y, visible, inventory_mode):#
     
     vertical_line = "║"
     horizontal_line = "═"
@@ -102,36 +102,36 @@ def draw_rectangle(stdscr, start_x, start_y, end_x, end_y, visible):#
     
     #углы
     try:
-        if ((start_x, start_y) in visible) or visible == 0:
+        if (inventory_mode and (visible is None)) or ((start_x, start_y) in visible):
             stdscr.addch(start_y, start_x, LU_corner)
-        if ((end_x, start_y) in visible) or visible == 0:
+        if (inventory_mode and (visible is None)) or ((end_x, start_y) in visible):
             stdscr.addch(start_y, end_x, RU_corner)
-        if ((start_x, end_y) in visible) or visible == 0:
+        if (inventory_mode and (visible is None)) or ((start_x, end_y) in visible):
             stdscr.addch(end_y, start_x, LD_corner)
-        if ((end_x, end_y) in visible) or visible == 0:
+        if (inventory_mode and (visible is None)) or ((end_x, end_y) in visible):
             stdscr.addch(end_y, end_x, RD_corner)
-    except:
-        pass
+    except Exception as e:
+         stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
         
     #горизонтальные линии
     for x in range(1, end_x - start_x):
         try:
-            if (start_x + x, start_y) in visible or visible == 0:
+            if (inventory_mode and (visible is None)) or ((start_x + x, start_y) in visible):
                 stdscr.addch(start_y, start_x + x, horizontal_line)
-            if (start_x + x, end_y) in visible or visible == 0:
+            if (inventory_mode and (visible is None)) or ((start_x + x, end_y) in visible):
                 stdscr.addch(end_y, start_x + x, horizontal_line)
-        except:
-            continue
+        except Exception as e:
+            stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
         
     #вертикальные линии 
     for y in range(1,  end_y - start_y):
         try:
-            if (start_x, start_y + y) in visible or visible == 0:
+            if (inventory_mode and (visible is None)) or (start_x, start_y + y) in visible:
                 stdscr.addch(start_y + y, start_x, vertical_line)
-            if (end_x, start_y + y) in visible or visible == 0:
+            if  (inventory_mode and (visible is None)) or (end_x, start_y + y) in visible:
                 stdscr.addch(start_y + y, end_x, vertical_line)
-        except:
-            continue
+        except Exception as e:
+            stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
     stdscr.refresh()
 
 #рисуем коридоры и двери
@@ -173,9 +173,10 @@ def draw_chests(stdscr, list_chests, visible):
             stdscr.addch(chest.y, chest.x, "■", curses.color_pair(3) | curses.A_BOLD)
 
 #получаем видимые клетки в зависимости от расположения игрока      
-def get_view_symbol(player_x, player_y, radius, max_x, max_y):
-    
-    visible = set()  # Множество для хранения видимых клеток
+def get_view_symbol(player_x, player_y, radius, max_x, max_y, visible):
+
+    if visible == None:
+        visible = set()  # Множество для хранения видимых клеток
     
     # Перебираем все клетки в квадрате radius x radius вокруг игрока
     for dy in range(-radius, radius + 1):
@@ -420,14 +421,12 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
     return list_rooms, list_corridor, list_chests, list_section, start_room, transition
     
 #рисуем все объекты на карте
-def draw_all_object_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_chests, transition, player):
+def draw_all_object_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_chests, transition, player, visible):
 
     curses.curs_set(0)#скрываем курсор
     
-    visible = get_view_symbol(player.x, player.y, 3, max_x, max_y)
-
     for room in list_rooms: #рисуем комнаты
-        draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height, visible)
+        draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height, visible, False)
         
     for corridor in list_corridor:#рисуем коридоры
         draw_corridor(stdscr, corridor, visible)
@@ -436,6 +435,8 @@ def draw_all_object_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list
 
     if (transition.x, transition.y) in visible:
         stdscr.addstr(transition.y, transition.x, transition.symbol, curses.color_pair(4))
+
+    stdscr.addch(player.y, player.x, player.letter, curses.color_pair(2) | curses.A_BOLD)
 
     stdscr.refresh()
 
