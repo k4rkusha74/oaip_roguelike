@@ -95,7 +95,7 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
                 stdscr.addch(y,x,door.symbol)
                 return True
         if x == transition.x and y == transition.y:
-                stdscr.addch(y,x,"=")
+                stdscr.addch(y,x,"=", curses.color_pair(4))
                 return True
         return False
     
@@ -108,25 +108,25 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
         if array_for_movement[y - 1][x] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
-            stdscr.addch(y - 1,x,"☻")
+            stdscr.addch(y - 1,x,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.y -= 1
     elif key == 's' or key == 'ы':#вниз
         if array_for_movement[y + 1][x] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
-            stdscr.addch(y + 1,x,"☻")
+            stdscr.addch(y + 1,x,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.y += 1
     elif key == 'd' or key == 'в':#вправо
        if array_for_movement[y][x + 1] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
-            stdscr.addch(y,x + 1,"☻")
+            stdscr.addch(y,x + 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x += 1
     elif key == 'a' or key == 'ф':#влево
         if array_for_movement[y][x - 1] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
-            stdscr.addch(y,x - 1,"☻")
+            stdscr.addch(y,x - 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x -= 1
     elif key == 'e' or key == 'у':#открыть сундук
         if (array_for_movement[y - 1][x] == '2' or array_for_movement[y + 1][x] == '2' or array_for_movement[y][x + 1] == '2' or array_for_movement[y][x - 1] == '2'):

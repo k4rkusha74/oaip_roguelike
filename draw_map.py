@@ -91,7 +91,7 @@ class Transition:
         return self
 
 #рисуем комнаты
-def draw_rectangle(stdscr, start_x, start_y, end_x, end_y):#
+def draw_rectangle(stdscr, start_x, start_y, end_x, end_y, visible, inventory_mode):#
     
     vertical_line = "║"
     horizontal_line = "═"
@@ -102,32 +102,40 @@ def draw_rectangle(stdscr, start_x, start_y, end_x, end_y):#
     
     #углы
     try:
-        stdscr.addch(start_y, start_x, LU_corner)
-        stdscr.addch(start_y, end_x, RU_corner)
-        stdscr.addch(end_y, start_x, LD_corner)
-        stdscr.addch(end_y, end_x, RD_corner)
-    except:
-        pass
+        if (inventory_mode and (visible is None)) or ((start_x, start_y) in visible):
+            stdscr.addch(start_y, start_x, LU_corner)
+        if (inventory_mode and (visible is None)) or ((end_x, start_y) in visible):
+            stdscr.addch(start_y, end_x, RU_corner)
+        if (inventory_mode and (visible is None)) or ((start_x, end_y) in visible):
+            stdscr.addch(end_y, start_x, LD_corner)
+        if (inventory_mode and (visible is None)) or ((end_x, end_y) in visible):
+            stdscr.addch(end_y, end_x, RD_corner)
+    except Exception as e:
+         stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
         
     #горизонтальные линии
     for x in range(1, end_x - start_x):
         try:
-            stdscr.addch(start_y, start_x + x, horizontal_line)
-            stdscr.addch(end_y, start_x + x, horizontal_line)
-        except:
-            continue
+            if (inventory_mode and (visible is None)) or ((start_x + x, start_y) in visible):
+                stdscr.addch(start_y, start_x + x, horizontal_line)
+            if (inventory_mode and (visible is None)) or ((start_x + x, end_y) in visible):
+                stdscr.addch(end_y, start_x + x, horizontal_line)
+        except Exception as e:
+            stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
         
     #вертикальные линии 
     for y in range(1,  end_y - start_y):
         try:
-            stdscr.addch(start_y + y, start_x, vertical_line)
-            stdscr.addch(start_y + y, end_x, vertical_line)
-        except:
-            continue
+            if (inventory_mode and (visible is None)) or (start_x, start_y + y) in visible:
+                stdscr.addch(start_y + y, start_x, vertical_line)
+            if  (inventory_mode and (visible is None)) or (end_x, start_y + y) in visible:
+                stdscr.addch(start_y + y, end_x, vertical_line)
+        except Exception as e:
+            stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
     stdscr.refresh()
 
 #рисуем коридоры и двери
-def draw_corridor(stdscr, corridor):
+def draw_corridor(stdscr, corridor, visible):
 
     door1, door2 = corridor.doors[0], corridor.doors[1]
     x1, y1 = door1.x + 1, door1.y
@@ -135,7 +143,8 @@ def draw_corridor(stdscr, corridor):
 
     for door in corridor.doors: #рисуем двери
         symbol = door.symbol_door()
-        stdscr.addch(door.y, door.x, symbol)
+        if (door.x, door.y) in visible:
+            stdscr.addch(door.y, door.x, symbol)
 
     if corridor.doors[0].y < corridor.doors[1].y:
         sign = 1
@@ -143,23 +152,44 @@ def draw_corridor(stdscr, corridor):
         sign = -1
     if y1 == y2:
         while x1 != x2:
-            stdscr.addch(y1 + 1, x1, "─")
-            stdscr.addch(y1 - 1, x1, "─")
+            if (x1, y1 + 1) in visible:
+                stdscr.addch(y1 + 1, x1, "─")
+            if (x1, y1 - 1) in visible:
+                stdscr.addch(y1 - 1, x1, "─")
             x1 += 1
     else:
         y1 += 1
         while y1 != y2:
-            stdscr.addch(y1, x2 - 1, "│")
-            stdscr.addch(y1, x2 + 1, "│")
+            if (x2 - 1, y1) in visible:
+                stdscr.addch(y1, x2 - 1, "│")
+            if (x2 + 1, y1) in visible:
+                stdscr.addch(y1, x2 + 1, "│")
             y1 += sign
             
 #рисуем сундуки
-def draw_chests(stdscr, list_chests):
-    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+def draw_chests(stdscr, list_chests, visible):
     for chest in list_chests:
-        stdscr.attron(curses.color_pair(1))
-        stdscr.addch(chest.y, chest.x, "■")
-        stdscr.attroff(curses.color_pair(1))
+        if (chest.x, chest.y) in visible:
+            stdscr.addch(chest.y, chest.x, "■", curses.color_pair(3) | curses.A_BOLD)
+
+#получаем видимые клетки в зависимости от расположения игрока      
+def get_view_symbol(player_x, player_y, radius, max_x, max_y, visible):
+
+    if visible == None:
+        visible = set()  # Множество для хранения видимых клеток
+    
+    # Перебираем все клетки в квадрате radius x radius вокруг игрока
+    for dy in range(-radius, radius + 1):
+        for dx in range(-radius, radius + 1):
+            # Вычисляем координаты клетки
+            x = player_x + dx
+            y = player_y + dy
+            
+            # Проверяем, что клетка в пределах карты
+            if 0 <= x < max_x and 0 <= y < max_y:
+                visible.add((x, y))  # Добавляем в видимые
+    
+    return visible
 
 #рассчет комнат              
 def calculate_rooms(list_rooms, list_section, count_rooms):
@@ -228,7 +258,7 @@ def point_in_corridor(x, y, list_corridor):
     return flag
 
 #рассчет сетки окна
-def calculate_grid( max_y, max_x):
+def calculate_grid(max_y, max_x):
     def calculate_section(start_point_x, start_point_y, witdh_section, height_section, id):
         for i in range(3):
             end_point_x = start_point_x + witdh_section
@@ -245,10 +275,10 @@ def calculate_grid( max_y, max_x):
     id = 1
     for i in range(2):
         if i == 1:
-            start_point_y = height_section + 1
+            start_point_y = height_section
             id = 4
         else:
-            start_point_y = 1
+            start_point_y = 0
             
         start_point_x = 0
         calculate_section(start_point_x, start_point_y, witdh_section, height_section, id)
@@ -391,19 +421,22 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
     return list_rooms, list_corridor, list_chests, list_section, start_room, transition
     
 #рисуем все объекты на карте
-def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, transition):
+def draw_all_object_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_chests, transition, player, visible):
 
     curses.curs_set(0)#скрываем курсор
     
     for room in list_rooms: #рисуем комнаты
-        draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height)
+        draw_rectangle(stdscr, room.start_point_x, room.start_point_y, room.start_point_x + room.width, room.start_point_y + room.height, visible, False)
         
     for corridor in list_corridor:#рисуем коридоры
-        draw_corridor(stdscr, corridor)
+        draw_corridor(stdscr, corridor, visible)
         
-    draw_chests(stdscr,list_chests)
+    draw_chests(stdscr,list_chests, visible)
 
-    stdscr.addstr(transition.y, transition.x, transition.symbol)
+    if (transition.x, transition.y) in visible:
+        stdscr.addstr(transition.y, transition.x, transition.symbol, curses.color_pair(4))
+
+    stdscr.addch(player.y, player.x, player.letter, curses.color_pair(2) | curses.A_BOLD)
 
     stdscr.refresh()
 
@@ -436,8 +469,15 @@ def draw_characteristics(stdscr, curren_level, view_health, view_event):
     stdscr.addstr(0,0, "Уровень:")
     stdscr.addstr(0,14, "Здоровье:")
     stdscr.addstr(0,29, "События:")
+
+    if view_health.content > 70:
+        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(2))
+    elif view_health.content > 30:
+        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(3))
+    else:
+        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(1))
+
     stdscr.addstr(curren_level.y, curren_level.x, str(curren_level.content))
-    stdscr.addstr(view_health.y, view_health.x, str(view_health.content))
     stdscr.addstr(view_event.y, view_event.x, str(view_event.content))
     stdscr.refresh()
 
