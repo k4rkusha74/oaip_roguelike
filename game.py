@@ -20,7 +20,7 @@ def main(stdscr):
     height, width = stdscr.getmaxyx()
     max_y, max_x = height - 1, width - 1 #запас
     curren_level = draw_map.View_characteristics("curren_level", 9, 0, 1)
-    view_health = draw_map.View_characteristics("view_health", 24, 0, 100)
+    view_health = draw_map.View_characteristics("view_health", 24, 0, 30)
     view_event = draw_map.View_characteristics("view_event", 38, 0, " ")
     player = None
     visible = None
@@ -59,7 +59,9 @@ def main(stdscr):
             #move_enemies(enemies, player, game_map)
 
             #обработка передвижения игрока
-            player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button = Character.handle_player_movement(stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, LIST_SECTION, transition, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button)
+            player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button = Character.handle_player_movement(stdscr, 
+            player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, LIST_SECTION, transition, curren_level, view_health, view_event,
+            flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button)
 
             if flag_clicking_on_another_button == True:
                 view_event.content = "Для отображения списка команд нажмие - I"

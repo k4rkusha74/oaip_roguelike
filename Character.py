@@ -1,7 +1,7 @@
 from Storage import Chest, Inventory, Arming, ArmorStorage 
 from Item import *
 import curses
-from draw_other_elements import draw_info_grid
+from draw_other_elements import draw_info_grid, draw_characteristics
 from working_with_sound import get_sound
 
 class Character():
@@ -89,7 +89,7 @@ def create_player(start_room, player, flag_on_open_chest):
 
     return player, flag_on_open_chest
 
-def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, transition, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
+def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
 
     def was_door_or_transition(x, y, list_doors, transition):
         for door in list_doors:
@@ -140,12 +140,14 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
                     break
     elif key == 'I' or key == 'i' or key == 'Ш' or key == 'ш':#вывод информации
         draw_info_grid(stdscr, list_section)
+        draw_characteristics(stdscr, curren_level, view_health, view_event)
 
     elif key == 'f' or key == 'а' or key == 'F' or key == 'А':#начать бой
         #запуск окна боя
         pass
     else:
         flag_clicking_on_another_button = True
+
     
     if player.x == transition.x and player.y ==  transition.y:
         flag_on_new_level = True
