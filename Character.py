@@ -140,6 +140,7 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
                     break
     elif key == 'I' or key == 'i' or key == 'Ш' or key == 'ш':#вывод информации
         draw_info_grid(stdscr, list_section)
+        view_event.content = " "
         draw_characteristics(stdscr, curren_level, view_health, view_event)
 
     elif key == 'f' or key == 'а' or key == 'F' or key == 'А':#начать бой
