@@ -1,6 +1,8 @@
 from Storage import Chest, Inventory, Arming, ArmorStorage 
 from Item import *
 import curses
+from draw_other_elements import draw_info_grid
+from working_with_sound import get_sound
 
 class Character():
     def __init__(self, name, letter, max_health, strong, x, y):
@@ -87,7 +89,7 @@ def create_player(start_room, player, flag_on_open_chest):
 
     return player, flag_on_open_chest
 
-def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, transition, flag_on_new_level, flag_on_open_chest):
+def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, transition, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
 
     def was_door_or_transition(x, y, list_doors, transition):
         for door in list_doors:
@@ -104,46 +106,49 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
     x, y = player.x, player.y
     open_chest = None
     
-    if key == 'w' or key == 'ц':#верх
+    if key == 'w' or key == 'ц' or key == 'W' or key == 'Ц':#верх
         if array_for_movement[y - 1][x] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
             stdscr.addch(y - 1,x,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.y -= 1
-    elif key == 's' or key == 'ы':#вниз
+    elif key == 's' or key == 'ы' or key == 'S' or key == 'Ы':#вниз
         if array_for_movement[y + 1][x] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
             stdscr.addch(y + 1,x,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.y += 1
-    elif key == 'd' or key == 'в':#вправо
+    elif key == 'd' or key == 'в' or key == 'D' or key == 'В':#вправо
        if array_for_movement[y][x + 1] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
             stdscr.addch(y,x + 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x += 1
-    elif key == 'a' or key == 'ф':#влево
+    elif key == 'a' or key == 'ф' or key == 'A' or key == 'Ф':#влево
         if array_for_movement[y][x - 1] == '1':
             if not was_door_or_transition(x, y, list_doors, transition):
                 stdscr.addch(y,x," ")
             stdscr.addch(y,x - 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x -= 1
-    elif key == 'e' or key == 'у':#открыть сундук
+    elif key == 'e' or key == 'у' or key == 'E' or key == 'У':#открыть сундук
         if (array_for_movement[y - 1][x] == '2' or array_for_movement[y + 1][x] == '2' or array_for_movement[y][x + 1] == '2' or array_for_movement[y][x - 1] == '2'):
             flag_on_open_chest = True
+            get_sound("open_chest.wav")
             for chest in list_chests:
                 if (((x+1 == chest.x or x-1 == chest.x) and y == chest.y) or ((y+1 == chest.y or y-1==chest.y) and x == chest.x)):
                     open_chest = chest
                     break
+    elif key == 'I' or key == 'i' or key == 'Ш' or key == 'ш':#вывод информации
+        draw_info_grid(stdscr, list_section)
 
-    elif key == 'f' or key == 'а':#начать бой
+    elif key == 'f' or key == 'а' or key == 'F' or key == 'А':#начать бой
         #запуск окна боя
         pass
     else:
-        pass
+        flag_clicking_on_another_button = True
     
     if player.x == transition.x and player.y ==  transition.y:
         flag_on_new_level = True
-        return player, open_chest, flag_on_new_level, flag_on_open_chest
+        return player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button
 
-    return player, open_chest, flag_on_new_level, flag_on_open_chest
+    return player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button

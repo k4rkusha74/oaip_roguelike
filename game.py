@@ -1,7 +1,9 @@
 import draw_map
+import draw_other_elements
 import curses
 import Character
 import Storage
+from working_with_sound import get_sound
 
 def init_colors():
     curses.start_color()
@@ -23,6 +25,7 @@ def main(stdscr):
     player = None
     visible = None
     flag_on_open_chest = False
+    flag_clicking_on_another_button = False
     LIST_ROOMS = list() 
     LIST_CORRIDORS = list()
     LIST_DOORS = list()
@@ -42,7 +45,7 @@ def main(stdscr):
         player, flag_on_open_chest = Character.create_player(start_room, player, flag_on_open_chest)
         
         #вывод характеристик
-        draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)
+        draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
 
         while True:
 
@@ -56,11 +59,16 @@ def main(stdscr):
             #move_enemies(enemies, player, game_map)
 
             #обработка передвижения игрока
-            player, open_chest, flag_on_new_level, flag_on_open_chest = Character.handle_player_movement(stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, transition, flag_on_new_level, flag_on_open_chest)
+            player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button = Character.handle_player_movement(stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, LIST_SECTION, transition, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button)
+
+            if flag_clicking_on_another_button == True:
+                view_event.content = "Для отображения списка команд нажмие - I"
+                draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
+                flag_clicking_on_another_button = False
 
             if flag_on_new_level == True:
                 view_event.content = "Хотите перейти на следующий уровень? да-Y"
-                draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)
+                draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
                 key = stdscr.getch()
                 key = chr(key)
                 if key == 'y' or key == 'н':
@@ -73,10 +81,11 @@ def main(stdscr):
                     LIST_CHESTS = list()
                     visible = None
                     view_event.content = " "
+                    get_sound("open_transition.wav")
                     break
                 else:
                     view_event.content = " "
-                    draw_map.draw_characteristics(stdscr, curren_level, view_health, view_event)
+                    draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
                     
             if flag_on_open_chest == True:
                 Storage.open_storges(stdscr, LIST_SECTION, open_chest)

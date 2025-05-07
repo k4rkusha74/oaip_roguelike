@@ -132,6 +132,7 @@ def draw_rectangle(stdscr, start_x, start_y, end_x, end_y, visible, inventory_mo
                 stdscr.addch(start_y + y, end_x, vertical_line)
         except Exception as e:
             stdscr.addstr(0,0,f"Ошибка при отрисовке: {e}")
+            
     stdscr.refresh()
 
 #рисуем коридоры и двери
@@ -462,24 +463,6 @@ def creating_map_for_movement(max_y, max_x, list_rooms, list_corridor, list_ches
                 row.append("0")
         array_for_movement.append(row)
     return array_for_movement
-
-def draw_characteristics(stdscr, curren_level, view_health, view_event):
-    stdscr.move(0, 0)# Перемещаем курсор в начало строки
-    stdscr.clrtoeol() 
-    stdscr.addstr(0,0, "Уровень:")
-    stdscr.addstr(0,14, "Здоровье:")
-    stdscr.addstr(0,29, "События:")
-
-    if view_health.content > 70:
-        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(2))
-    elif view_health.content > 30:
-        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(3))
-    else:
-        stdscr.addstr(view_health.y, view_health.x, str(view_health.content), curses.color_pair(1))
-
-    stdscr.addstr(curren_level.y, curren_level.x, str(curren_level.content))
-    stdscr.addstr(view_event.y, view_event.x, str(view_event.content))
-    stdscr.refresh()
 
 def draw_map(stdscr):
     curses.start_color()

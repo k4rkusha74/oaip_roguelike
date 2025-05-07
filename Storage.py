@@ -1,5 +1,6 @@
 from Item import WeaponNothing, ArmorNothing, GenerateItems
 import draw_map
+from working_with_sound import get_sound
 
 class Storage():
     def __init__(self, amount):
@@ -77,7 +78,8 @@ def open_storges(stdscr, list_section, open_chest):
             key = stdscr.getch()
             key = chr(key)
 
-            if key == 'ч' or key == 'x':
+            if key == 'ч' or key == 'x' or key == 'Ч' or key == 'X':
+                get_sound("close_chest.wav")
                 stdscr.clear()
                 return 0
         
