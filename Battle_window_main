@@ -1,19 +1,15 @@
 import curses
 import random
-import os
-import sys
-from Character import Player, Enemy
-from Item import Weapon, Armor, UseItem, WeaponNothing, ArmorNothing, CreateWeapons, CreateArmors
-from Storage import Inventory, Arming, ArmorStorage
-import EnemyAnimations
+from Item import Weapon, Armor, UseItem, WeaponNothing, ArmorNothing
+from Storage import Inventory, Arming, ArmorStorage, Chest
+from EnemyAnimations import EnemyAnimations
 
 class BattleWindow:
-    def __init__(self, stdscr, player, enemies):
+    def __init__(self, stdscr, player, enemy):  
         self.stdscr = stdscr
         self.player = player
-        self.enemies = enemies
-        self.current_enemy = None
-        self.in_battle = False
+        self.current_enemy = enemy  
+        self.in_battle = True
         self.in_inventory = False
         self.selected_action = 0
         self.selected_item = 0
@@ -28,8 +24,6 @@ class BattleWindow:
             'retreat': ord('f')
         }
         
-        self.start_battle(random.choice(self.enemies))
-
 
     def start_battle(self, enemy):
         self.current_enemy = enemy
@@ -77,7 +71,10 @@ class BattleWindow:
         enemy_art = EnemyAnimations.get_enemy_art(self.current_enemy.name)
         for i, line in enumerate(enemy_art):
             if i < win_h - 2:
-                win.addstr(i + 1, (win_w - len(line)) // 2, line)
+                try:
+                    win.addstr(i + 1, (win_w - len(line)) // 2, line)
+                except curses.error:
+                    pass
         
         win.refresh()
 
@@ -176,6 +173,7 @@ class BattleWindow:
             if self.current_enemy.current_health <= 0:
                 self.show_result_message(f"Вы победили {self.current_enemy.name}!")
                 self.in_battle = False
+                return True  
             else:
                 self.enemy_counter_attack()
         elif action_index == 2:
@@ -184,6 +182,7 @@ class BattleWindow:
             if any(isinstance(item, UseItem) for item in self.player.inventory.get_items()):
                 self.in_inventory = True
                 self.selected_item = 0
+        return False  
 
     def enemy_counter_attack(self):
         if self.current_enemy.current_health > 0:
@@ -214,202 +213,13 @@ class BattleWindow:
 
     def show_result_message(self, message):
         h, w = self.stdscr.getmaxyx()
+        # Очищаем область сообщения
+        for i in range(h//2 - 1, h//2 + 2):
+            self.stdscr.addstr(i, 0, " " * w)
+        # Выводим сообщение
         self.stdscr.addstr(h//2, (w - len(message))//2, message, curses.A_BOLD)
         self.stdscr.refresh()
-        curses.napms(2000)
-
-def heal_effect(character, power):
-    character.current_health = min(character.current_health + power, character.health)
-
-def restore_mana(character, power):
-    pass
-
-def load_item_data():
-    weapons = {w.name: w for w in CreateWeapons()}
-    armors = {a.name: a for a in CreateArmors()}
-    return weapons, armors
-
-def parse_line(line):
-    parts = [part.strip() for part in line.split('=')]
-    if len(parts) == 2:
-        return parts[0], parts[1]
-    return None, None
-
-def create_player():
-    weapons, armors = load_item_data()
-    
-    try:
-        with open('game_data.txt', 'r', encoding='utf-8') as f:
-            player_data = {}
-            current_section = None
-            
-            for line in f:
-                line = line.strip()
-                if line.startswith('[') and line.endswith(']'):
-                    current_section = line[1:-1]
-                elif current_section == 'player':
-                    key, value = parse_line(line)
-                    if key and value:
-                        player_data[key] = value
-            
-            player = Player(
-                player_data.get('name', 'Герой'),
-                player_data.get('letter', '@'),
-                int(player_data.get('health', 100)),
-                int(player_data.get('strong', 10)),
-                0, 0
-            )
-            
-            # Оружие
-            if 'weapon' in player_data:
-                weapon_name = player_data['weapon']
-                if weapon_name in weapons:
-                    weapon = weapons[weapon_name]
-                    player.hand.items[0] = weapon
-            
-            # Броня
-            for pos in ['head', 'body', 'leg']:
-                key = f'armor_{pos}'
-                if key in player_data:
-                    armor_name = player_data[key]
-                    if armor_name in armors:
-                        armor = armors[armor_name]
-                        if pos == 'head':
-                            player.armor.items[0] = armor
-                        elif pos == 'body':
-                            player.armor.items[1] = armor
-                        elif pos == 'leg':
-                            player.armor.items[2] = armor
-            
-            # Зелья
-            for i in range(1, 3):
-                key = f'potion{i}'
-                if key in player_data:
-                    parts = [p.strip() for p in player_data[key].split(',')]
-                    if len(parts) >= 4:
-                        name, effect, power, count = parts[0], parts[1], int(parts[2]), int(parts[3])
-                        effect_func = heal_effect if effect == 'heal' else restore_mana
-                        potion = UseItem(
-                            name,
-                            'common',
-                            None, None, None,
-                            lambda char, p=power: effect_func(char, p)
-                        )
-                        potion.counter = count
-                        player.inventory.add(potion)
-            
-            return player
-    except Exception as e:
-        raise ValueError(f"Ошибка создания игрока: {str(e)}")
-
-def create_enemies():
-    weapons, armors = load_item_data()
-    enemies = []
-    
-    try:
-        with open('game_data.txt', 'r', encoding='utf-8') as f:
-            current_section = None
-            enemy_data = {}
-            
-            for line in f:
-                line = line.strip()
-                if line.startswith('[') and line.endswith(']'):
-                    if current_section and current_section.startswith('enemy_'):
-                        enemy = create_enemy_from_data(enemy_data, weapons, armors)
-                        if enemy:
-                            enemies.append(enemy)
-                    current_section = line[1:-1]
-                    enemy_data = {}
-                elif current_section and current_section.startswith('enemy_'):
-                    key, value = parse_line(line)
-                    if key and value:
-                        enemy_data[key] = value
-            
-            # Добавляем последнего врача
-            if current_section and current_section.startswith('enemy_'):
-                enemy = create_enemy_from_data(enemy_data, weapons, armors)
-                if enemy:
-                    enemies.append(enemy)
-            
-            return enemies
-    except Exception as e:
-        raise ValueError(f"Ошибка создания врагов: {str(e)}")
-
-def create_enemy_from_data(data, weapons, armors):
-    if not data.get('name'):
-        return None
-        
-    enemy = Enemy(
-        data['name'],
-        data.get('letter', 'e'),
-        int(data.get('health', 30)),
-        int(data.get('strong', 5)),
-        0, 0
-    )
-    
-    # Оружие
-    if 'weapon' in data:
-        weapon_name = data['weapon']
-        if weapon_name in weapons:
-            weapon = weapons[weapon_name]
-            enemy.hand.items[0] = weapon
-    
-    # Броня
-    for pos in ['head', 'body', 'leg']:
-        key = f'armor_{pos}'
-        if key in data:
-            armor_name = data[key]
-            if armor_name in armors:
-                armor = armors[armor_name]
-                if pos == 'head':
-                    enemy.armor.items[0] = armor
-                elif pos == 'body':
-                    enemy.armor.items[1] = armor
-                elif pos == 'leg':
-                    enemy.armor.items[2] = armor
-    
-    return enemy
-
-def main(stdscr):
-    curses.curs_set(0)
-    stdscr.keypad(True)
-    
-    try:
-        player = create_player()
-        enemies = create_enemies()
-        
-        battle = BattleWindow(stdscr, player, enemies)
-        
-        while True:
-            battle.draw()
-            key = stdscr.getch()
-            battle.handle_input(key)
-            
-            if battle.player.current_health <= 0:
-                battle.show_result_message("ВЫ ПОГИБЛИ! Игра окончена.")
-                break
-                
-            if battle.current_enemy and battle.current_enemy.current_health <= 0:
-                battle.in_battle = False
-                battle.show_result_message(f"Вы победили {battle.current_enemy.name}!")
-                break
-                
-            if not battle.in_battle and not battle.in_inventory:
-                battle.show_result_message("Бой завершен!")
-                break
-                
-    except Exception as e:
-        stdscr.clear()
-        stdscr.addstr(0, 0, f"Ошибка: {str(e)}")
-        stdscr.addstr(2, 0, "Проверьте файлы данных и попробуйте снова")
-        stdscr.addstr(4, 0, "Нажмите любую клавишу для выхода...")
-        stdscr.refresh()
-        stdscr.getch()
-        return
-
-if __name__ == "__main__":
-    try:
-        curses.wrapper(main)
-    except Exception as e:
-        print(f"Произошла ошибка: {str(e)}")
-        input("Нажмите Enter для выхода...")
+        curses.napms(2000)  # Пауза 2 секунды
+        # Полностью очищаем экран
+        self.stdscr.clear()
+        self.in_battle = False
