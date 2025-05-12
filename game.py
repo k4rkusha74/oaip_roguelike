@@ -4,6 +4,7 @@ import curses
 import Character
 import Storage
 import random
+import draw_other_level
 from Character import Enemy
 from Battle_window_main import BattleWindow
 from Storage import Corpse  
@@ -22,6 +23,7 @@ def init_colors():
 def main(stdscr):
     init_colors()
     height, width = stdscr.getmaxyx()
+    
     max_y, max_x = height - 1, width - 1
     
     curren_level = draw_other_elements.View_characteristics("curren_level", 9, 0, 1)
@@ -36,9 +38,13 @@ def main(stdscr):
     LIST_DOORS = list()
     LIST_CHESTS = list()
     LIST_CORPSE = list()
-    enemies = []
+
 
     while True:
+        if curren_level.content == 11:
+            draw_other_level.end_game(stdscr, player, None)
+            return 0
+
         if LIST_ROOMS == list():
             
             #расчет карты
@@ -47,17 +53,9 @@ def main(stdscr):
             #создание массива для передвижения по статическим объектам
             ARRAY_FOR_MOVEMENT = draw_map.creating_map_for_movement(max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS)
             
-            # чисто создать 3х врагов
-            enemies = []
-            for _ in range(3):  
-                x = random.randint(start_room.start_point_x + 1, start_room.start_point_x + start_room.width - 1)
-                y = random.randint(start_room.start_point_y + 1, start_room.start_point_y + start_room.height - 1)
-                enemy_type = random.choice(["Слизень", "Гоблин", "Крыса"])
-                enemies.append(Enemy(enemy_type, "e", 30 + random.randint(0, 20), 5 + random.randint(0, 10), x, y))
+            enemies = Character.create_enemy(start_room)
 
         player, flag_on_open_chest = Character.create_player(start_room, player, flag_on_open_chest)
-
-        
 
         while True:
             flag_on_new_level = False
@@ -67,11 +65,12 @@ def main(stdscr):
 
             #получаем доступные для видимости элементы карты
             visible = draw_map.get_view_symbol(player.x, player.y, 4, max_x, max_y, visible)
+
             #отображаем карту с соответствующей видимостью
             draw_map.draw_all_object_in_map(stdscr, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, LIST_CORPSE, transition, player, visible)
 
             #рассчитываем передвижение врага по карте
-            #enemies = Character.enemy_move_controller(ARRAY_FOR_MOVEMENT, enemies, player)
+            enemies = Character.enemy_move_controller(ARRAY_FOR_MOVEMENT, enemies, player, LIST_DOORS, transition, stdscr)
 
             # рисование врага на карте 
             for enemy in enemies:
@@ -99,6 +98,7 @@ def main(stdscr):
                     LIST_CORRIDORS = list()
                     LIST_DOORS = list()
                     LIST_CHESTS = list()
+                    LIST_CORPSE = list()
                     visible = None
                     view_event.content = " "
                     get_sound("open_transition.wav")
@@ -120,7 +120,9 @@ def main(stdscr):
                         key = stdscr.getch()
                         battle.handle_input(key)
                         if player.current_health <= 0:
-                            return  # GG
+                            draw_other_level.end_game(stdscr, player, enemy)
+                            return 0
+                            
                     
                     # замена врага трупом при победе
                     if enemy.current_health <= 0:

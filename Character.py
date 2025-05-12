@@ -1,6 +1,7 @@
 from Storage import Chest, Inventory, Arming, ArmorStorage 
 from Item import *
 import curses
+import random
 from draw_other_elements import draw_info_grid, draw_characteristics
 from working_with_sound import get_sound
 
@@ -73,6 +74,17 @@ class Player(Character):
     def death(self):
         pass
 
+def create_enemy(start_room):
+    # чисто создать 2х врагов
+    enemies = []
+    for _ in range(2):  
+        x = random.randint(start_room.start_point_x + 1, start_room.start_point_x + start_room.width - 1)
+        y = random.randint(start_room.start_point_y + 1, start_room.start_point_y + start_room.height - 1)
+        enemy_type = random.choice(["Слизень", "Гоблин", "Крыса"])
+        enemies.append(Enemy(enemy_type, "e", 30 + random.randint(0, 20), 5 + random.randint(0, 10), x, y))
+
+    return enemies
+
 def create_player(start_room, player, flag_on_open_chest):
     
     x_start_player = start_room.start_point_x + start_room.width // 2
@@ -89,9 +101,7 @@ def create_player(start_room, player, flag_on_open_chest):
 
     return player, flag_on_open_chest
 
-def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, list_corpse, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
-
-    def was_door_or_transition(x, y, list_doors, transition):
+def was_door_or_transition(x, y, list_doors, transition, stdscr):
         for door in list_doors:
             if door.x == x and door.y == y:
                 stdscr.addch(y,x,door.symbol)
@@ -100,7 +110,8 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
                 stdscr.addch(y,x,"=", curses.color_pair(4))
                 return True
         return False
-    
+
+def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, list_corpse, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
     key = stdscr.getch()
     key = chr(key)
     x, y = player.x, player.y
@@ -108,25 +119,25 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
     
     if key == 'w' or key == 'ц' or key == 'W' or key == 'Ц':#верх
         if array_for_movement[y - 1][x] == '1':
-            if not was_door_or_transition(x, y, list_doors, transition):
+            if not was_door_or_transition(x, y, list_doors, transition, stdscr):
                 stdscr.addch(y,x," ")
             stdscr.addch(y - 1,x,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.y -= 1
     elif key == 's' or key == 'ы' or key == 'S' or key == 'Ы':#вниз
         if array_for_movement[y + 1][x] == '1':
-            if not was_door_or_transition(x, y, list_doors, transition):
+            if not was_door_or_transition(x, y, list_doors, transition, stdscr):
                 stdscr.addch(y,x," ")
             stdscr.addch(y + 1,x,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.y += 1
     elif key == 'd' or key == 'в' or key == 'D' or key == 'В':#вправо
        if array_for_movement[y][x + 1] == '1':
-            if not was_door_or_transition(x, y, list_doors, transition):
+            if not was_door_or_transition(x, y, list_doors, transition, stdscr):
                 stdscr.addch(y,x," ")
             stdscr.addch(y,x + 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x += 1
     elif key == 'a' or key == 'ф' or key == 'A' or key == 'Ф':#влево
         if array_for_movement[y][x - 1] == '1':
-            if not was_door_or_transition(x, y, list_doors, transition):
+            if not was_door_or_transition(x, y, list_doors, transition, stdscr):
                 stdscr.addch(y,x," ")
             stdscr.addch(y,x - 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x -= 1
@@ -159,7 +170,72 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
 
     return player, open_storage, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button
 
-def enemy_move_controller(array_for_movement, enemies, player):
+def enemy_move_controller(array_for_movement, enemies, player, list_doors, transition, stdscr):
     list_move = ["up", "down", "left", "right"]
+    vision_radius = 5
     for enemy in enemies:
-        pass
+        distance = abs(enemy.x - player.x) + abs(enemy.y - player.y)
+
+        # Проверяем видимость игрока
+        if distance < vision_radius:
+            # Преследование игрока
+            move_towards_player(enemy, player, array_for_movement, list_doors, transition, stdscr)
+        else:
+            # Случайное блуждание
+            random_wander(enemy, list_move, array_for_movement, list_doors, transition, stdscr)
+
+    return enemies
+
+
+def move_towards_player(enemy, player, game_map, list_doors, transition, stdscr):
+    
+    dx = player.x - enemy.x
+    dy = player.y - enemy.y
+    
+    # Определяем приоритет направления движения
+    if abs(dx) > abs(dy):
+        direction = "right" if dx > 0 else "left"
+    else:
+        direction = "down" if dy > 0 else "up"
+    
+    # Пробуем двигаться в выбранном направлении
+    new_x, new_y = enemy.x, enemy.y
+    if direction == "up":
+        if game_map[new_y-1][new_x] == '1':
+            new_y -= 1
+    elif direction == "down":
+        if game_map[new_y+1][new_x] == '1':
+            new_y += 1
+    elif direction == "left":
+        if game_map[new_y][new_x-1] == '1':
+            new_x -= 1
+    elif direction == "right":
+        if game_map[new_y][new_x+1] == '1':
+            new_x += 1
+        
+    if not was_door_or_transition(new_x, new_y, list_doors, transition, stdscr):
+        stdscr.addch(enemy.y, enemy.x, ' ')
+        enemy.x, enemy.y = new_x, new_y
+
+
+def random_wander(enemy, possible_moves, game_map, list_doors, transition, stdscr):
+    from random import choice
+    
+    valid_moves = []
+    for move in possible_moves:
+        x, y = enemy.x, enemy.y
+        if move == "up" and game_map[y-1][x] == '1':
+            valid_moves.append((x, y-1))
+        elif move == "down" and game_map[y+1][x] == '1':
+            valid_moves.append((x, y+1))
+        elif move == "left" and game_map[y][x-1] == '1':
+            valid_moves.append((x-1, y))
+        elif move == "right" and game_map[y][x+1] == '1':
+            valid_moves.append((x+1, y))
+            
+    if valid_moves:
+        new_x, new_y = choice(valid_moves)
+        
+        if not was_door_or_transition(new_x, new_y, list_doors, transition, stdscr):
+            stdscr.addch(enemy.y, enemy.x, ' ')
+            enemy.x, enemy.y = new_x, new_y

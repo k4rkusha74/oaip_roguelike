@@ -40,8 +40,7 @@ def draw_info_grid(stdscr, list_section):
     stdscr.addstr(start_y + 2, start_x+ 1, "D - влево / A - вправо", curses.color_pair(3))
     stdscr.addstr(start_y + 3, start_x+ 1, "E - открыть сундук", curses.color_pair(3))
     stdscr.addstr(start_y + 4, start_x+ 1, "X - закрыть сундук/окно команд", curses.color_pair(3))
-    stdscr.addstr(start_y + 5, start_x+ 1, "F - атаковать", curses.color_pair(3))
-    stdscr.addstr(start_y + 6, start_x+ 1, "I - показать окно команд", curses.color_pair(3))
+    stdscr.addstr(start_y + 5, start_x+ 1, "I - показать окно команд", curses.color_pair(3))
 
     while True:
             key = stdscr.getch()
