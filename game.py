@@ -57,11 +57,14 @@ def main(stdscr):
 
         player, flag_on_open_chest = Character.create_player(start_room, player, flag_on_open_chest)
 
-        view_health.content = player.current_health
-        draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
+        
 
         while True:
             flag_on_new_level = False
+
+            view_health.content = player.current_health
+            draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
+
             #получаем доступные для видимости элементы карты
             visible = draw_map.get_view_symbol(player.x, player.y, 4, max_x, max_y, visible)
             #отображаем карту с соответствующей видимостью
