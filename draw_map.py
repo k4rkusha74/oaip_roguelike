@@ -53,13 +53,6 @@ class Room(Rectangle):
             if isinstance(obj, Room):
                 return obj.start_point_x
 
-class View_characteristics:
-    def __init__(self, name, x, y, content):
-        self.name = name
-        self.x = x
-        self.y = y
-        self.content = content
-
 class Transition:
     def __init__(self, symbol, x, y):
         self.symbol = "="
@@ -172,6 +165,11 @@ def draw_chests(stdscr, list_chests, visible):
     for chest in list_chests:
         if (chest.x, chest.y) in visible:
             stdscr.addch(chest.y, chest.x, "■", curses.color_pair(3) | curses.A_BOLD)
+
+def draw_corpse(stdscr, list_corpse, visible):
+    for corpse in list_corpse:
+        if(corpse.x, corpse.y) in visible:
+            stdscr.addch(corpse.y, corpse.x, "†", curses.color_pair(3) | curses.A_BOLD)
 
 #получаем видимые клетки в зависимости от расположения игрока      
 def get_view_symbol(player_x, player_y, radius, max_x, max_y, visible):
@@ -422,7 +420,7 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
     return list_rooms, list_corridor, list_chests, list_section, start_room, transition
     
 #рисуем все объекты на карте
-def draw_all_object_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list_chests, transition, player, visible):
+def draw_all_object_in_map(stdscr, list_rooms, list_corridor, list_chests, list_corpse, transition, player, visible):
 
     curses.curs_set(0)#скрываем курсор
     
@@ -433,6 +431,8 @@ def draw_all_object_in_map(stdscr, max_y, max_x, list_rooms, list_corridor, list
         draw_corridor(stdscr, corridor, visible)
         
     draw_chests(stdscr,list_chests, visible)
+
+    draw_corpse(stdscr, list_corpse, visible)
 
     if (transition.x, transition.y) in visible:
         stdscr.addstr(transition.y, transition.x, transition.symbol, curses.color_pair(4))

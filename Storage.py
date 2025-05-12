@@ -28,13 +28,17 @@ class Chest(Storage):
         super().__init__(amount)
         self.x = x
         self.y = y
-         # При создании сундука сразу генерируем предметы и добавляем их
+        # При создании сундука сразу генерируем предметы и добавляем их
         #self.generate_and_add_items()
     
     def generate_and_add_items(self):
         items = GenerateItems()  
         for item in items:
             self.add(item)
+
+class Corpse(Chest):
+    def __init__(self, amount, x, y):
+        super().__init__(amount, x, y)
 
 class Inventory(Storage):
     def __init__(self, amount):

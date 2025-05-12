@@ -1,6 +1,13 @@
 import curses
 import draw_map
 
+class View_characteristics:
+    def __init__(self, name, x, y, content):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.content = content
+
 def draw_characteristics(stdscr, curren_level, view_health, view_event):
     stdscr.move(0, 0)# Перемещаем курсор в начало строки
     stdscr.clrtoeol() 
