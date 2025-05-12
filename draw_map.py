@@ -380,7 +380,7 @@ def calculate_corridors_and_doors(list_section, list_rooms, list_corridor, list_
                 list_doors.extend(doors_found[:2])
 
 #рассчет метсоположения сундуков
-def calculate_location_chests(list_rooms, list_chests, list_doors):
+def calculate_location_chests(list_rooms, list_chests, list_doors, transition):
     for room in list_rooms:
         count_chests = random.randint(0,2)
         
@@ -390,11 +390,12 @@ def calculate_location_chests(list_rooms, list_chests, list_doors):
                 x = random.randint(room.start_point_x + 1, room.start_point_x + room.width - 1)
                 y = random.randint(room.start_point_y + 1, room.start_point_y + room.height - 1)
                 for door in list_doors:
-                    if x + 1 == door.x or x - 1 == door.x or y + 1 == door.y or y - 1 == door.y:
+                    if (x + 1 == door.x or x - 1 == door.x or y + 1 == door.y or y - 1 == door.y) or (x == transition.x and y == transition.y):
                         flag_krinzh = False
                         break
                     else:
                         flag_krinzh = True
+                
                     
             chest = Storage.Chest(0,x,y)
             list_chests.append(chest)
@@ -411,11 +412,11 @@ def calculate_all_objects_in_map(max_y, max_x, list_rooms, list_corridor, list_d
     
     calculate_corridors_and_doors(list_true_section, list_rooms, list_corridor, list_doors)
 
-    calculate_location_chests(list_rooms, list_chests, list_doors)
-
     start_room = random.choice(list_rooms)
     transition = Transition("",0,0)
     transition = Transition.choice_room(transition, start_room, list_rooms)
+
+    calculate_location_chests(list_rooms, list_chests, list_doors, transition)
 
     return list_rooms, list_corridor, list_chests, list_section, start_room, transition
     

@@ -89,7 +89,7 @@ def create_player(start_room, player, flag_on_open_chest):
 
     return player, flag_on_open_chest
 
-def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
+def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_chests, list_section, list_corpse, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button):
 
     def was_door_or_transition(x, y, list_doors, transition):
         for door in list_doors:
@@ -104,7 +104,7 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
     key = stdscr.getch()
     key = chr(key)
     x, y = player.x, player.y
-    open_chest = None
+    open_storage = None
     
     if key == 'w' or key == 'ц' or key == 'W' or key == 'Ц':#верх
         if array_for_movement[y - 1][x] == '1':
@@ -130,28 +130,36 @@ def handle_player_movement(stdscr, player, array_for_movement, list_doors, list_
                 stdscr.addch(y,x," ")
             stdscr.addch(y,x - 1,"☻", curses.color_pair(2) | curses.A_BOLD)
             player.x -= 1
-    elif key == 'e' or key == 'у' or key == 'E' or key == 'У':#открыть сундук
+    elif key == 'e' or key == 'у' or key == 'E' or key == 'У':#открыть сундук и покапаться в трупе
         if (array_for_movement[y - 1][x] == '2' or array_for_movement[y + 1][x] == '2' or array_for_movement[y][x + 1] == '2' or array_for_movement[y][x - 1] == '2'):
             flag_on_open_chest = True
             get_sound("open_chest.wav")
             for chest in list_chests:
                 if (((x+1 == chest.x or x-1 == chest.x) and y == chest.y) or ((y+1 == chest.y or y-1==chest.y) and x == chest.x)):
-                    open_chest = chest
+                    open_storage = chest
+                    break
+        elif (array_for_movement[y - 1][x] == '3' or array_for_movement[y + 1][x] == '3' or array_for_movement[y][x + 1] == '3' or array_for_movement[y][x - 1] == '3'):
+            flag_on_open_chest = True
+            get_sound("examine_corpse.wav")
+            for corpse in list_corpse:
+                if (((x+1 == corpse.x or x-1 == corpse.x) and y == corpse.y) or ((y+1 == corpse.y or y-1==corpse.y) and x == corpse.x)):
+                    open_storage = corpse
                     break
     elif key == 'I' or key == 'i' or key == 'Ш' or key == 'ш':#вывод информации
         draw_info_grid(stdscr, list_section)
         view_event.content = " "
         draw_characteristics(stdscr, curren_level, view_health, view_event)
-
-    elif key == 'f' or key == 'а' or key == 'F' or key == 'А':#начать бой
-        #запуск окна боя
-        pass
     else:
         flag_clicking_on_another_button = True
 
     
     if player.x == transition.x and player.y ==  transition.y:
         flag_on_new_level = True
-        return player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button
+        return player, open_storage, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button
 
-    return player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button
+    return player, open_storage, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button
+
+def enemy_move_controller(array_for_movement, enemies, player):
+    list_move = ["up", "down", "left", "right"]
+    for enemy in enemies:
+        pass

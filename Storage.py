@@ -67,7 +67,7 @@ class ArmorStorage(Storage):
     def delete(self, item):
         self.items[item] = ArmorNothing()
 
-def open_storges(stdscr, list_section, open_chest):      
+def open_storges(stdscr, list_section, list_chests, open_storage):      
         stdscr.clear()
         start_section = list(filter(lambda x: x.ID == 1, list_section))
         end_section = list(filter(lambda x: x.ID == 6, list_section))
@@ -83,7 +83,8 @@ def open_storges(stdscr, list_section, open_chest):
             key = chr(key)
 
             if key == 'ч' or key == 'x' or key == 'Ч' or key == 'X':
-                get_sound("close_chest.wav")
+                if open_storage in list_chests:
+                    get_sound("close_chest.wav")
                 stdscr.clear()
                 return 0
         

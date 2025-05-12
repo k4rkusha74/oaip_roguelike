@@ -65,15 +65,18 @@ def main(stdscr):
             #получаем доступные для видимости элементы карты
             visible = draw_map.get_view_symbol(player.x, player.y, 4, max_x, max_y, visible)
             #отображаем карту с соответствующей видимостью
-            draw_map.draw_all_object_in_map(stdscr, max_y, max_x, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, LIST_CORPSE, transition, player, visible)
+            draw_map.draw_all_object_in_map(stdscr, LIST_ROOMS, LIST_CORRIDORS, LIST_CHESTS, LIST_CORPSE, transition, player, visible)
+
+            #рассчитываем передвижение врага по карте
+            #enemies = Character.enemy_move_controller(ARRAY_FOR_MOVEMENT, enemies, player)
 
             # рисование врага на карте 
             for enemy in enemies:
                 if (enemy.x, enemy.y) in visible:
                     stdscr.addch(enemy.y, enemy.x, enemy.letter, curses.color_pair(1))
 
-            player, open_chest, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button = Character.handle_player_movement(
-                stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, LIST_SECTION, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button)
+            player, open_storage, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button = Character.handle_player_movement(
+                stdscr, player, ARRAY_FOR_MOVEMENT, LIST_DOORS, LIST_CHESTS, LIST_SECTION, LIST_CORPSE, transition, curren_level, view_health, view_event, flag_on_new_level, flag_on_open_chest, flag_clicking_on_another_button)
 
             if flag_clicking_on_another_button == True:
                 view_event.content = "Для отображения списка команд нажмие - I"
@@ -102,7 +105,7 @@ def main(stdscr):
                     draw_other_elements.draw_characteristics(stdscr, curren_level, view_health, view_event)
                     
             if flag_on_open_chest == True:
-                Storage.open_storges(stdscr, LIST_SECTION, open_chest)
+                Storage.open_storges(stdscr, LIST_SECTION, LIST_CHESTS, open_storage)
                 break
 
             # Проверка
@@ -118,11 +121,14 @@ def main(stdscr):
                     
                     # замена врага трупом при победе
                     if enemy.current_health <= 0:
+                        stdscr.clear()
                         enemies.remove(enemy)
                         corpse = Corpse(5, enemy.x, enemy.y)
                         LIST_CORPSE.append(corpse)
                         ARRAY_FOR_MOVEMENT[enemy.y][enemy.x] = "3"
                         break
+                
+                        
                 
 
             stdscr.refresh()
